@@ -4,6 +4,11 @@ void stillImageDataReleaseCallback(void *releaseRefCon, const void *baseAddress)
 void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize finalSize, CMSampleBufferRef *sampleBuffer);
 
 @interface GPUImageStillCamera : GPUImageVideoCamera
+{
+    __block CMSampleBufferRef _sampleBufferRef;
+}
+
+@property (nonatomic, assign) CMSampleBufferRef sampleBufferRef;
 
 // Photography controls
 - (void)capturePhotoAsSampleBufferWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block;
@@ -11,4 +16,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 - (void)capturePhotoAsJPEGProcessedUpToFilter:(GPUImageOutput<GPUImageInput> *)finalFilterInChain withCompletionHandler:(void (^)(NSData *processedJPEG, NSError *error))block;
 - (void)capturePhotoAsPNGProcessedUpToFilter:(GPUImageOutput<GPUImageInput> *)finalFilterInChain withCompletionHandler:(void (^)(NSData *processedPNG, NSError *error))block;
 
+- (void)captureOriginalPhotoWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block;
+
+-(BOOL) isFocusSupport;
 @end

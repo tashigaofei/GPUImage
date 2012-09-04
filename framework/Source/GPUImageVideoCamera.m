@@ -22,6 +22,7 @@
 
 @implementation GPUImageVideoCamera
 
+@synthesize focusCallbackBlock = _focusCallbackBlock;
 @synthesize captureSessionPreset = _captureSessionPreset;
 @synthesize captureSession = _captureSession;
 @synthesize inputCamera = _inputCamera;
@@ -132,11 +133,19 @@
     
     [_captureSession commitConfiguration];
     
+    [self configFocusCallBack];
+    [self focusAtPoint:CGPointMake(0.5, 0.5) ContinusFocus:YES];
+    [self flashConfig:YES];
+    
 	return self;
 }
 
 - (void)dealloc 
 {
+    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+        [_inputCamera removeObserver:self forKeyPath:@"adjustingFocus"];
+    }
+    
     [self stopCameraCapture];
     [videoOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
     [audioOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
@@ -168,6 +177,90 @@
         [_captureSession removeInput:audioInput];
         [_captureSession removeOutput:audioOutput];
     }
+}
+
+#pragma mark -- callback
+-(void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
+    if([keyPath isEqualToString:@"adjustingFocus"]){
+        BOOL adjustingFocus =[[change objectForKey:NSKeyValueChangeNewKey] boolValue];
+        if (adjustingFocus && _focusCallbackBlock != NULL) {
+            dispatch_async(dispatch_get_main_queue(), ^(){
+                _focusCallbackBlock(_inputCamera.focusPointOfInterest);
+            });
+        }
+    }
+}
+
+-(void) configFocusCallBack
+{
+    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+        [_inputCamera addObserver:self forKeyPath:@"adjustingFocus" options:NSKeyValueObservingOptionNew context:nil];
+    }
+}
+
+-(void) focusAtPoint:(CGPoint)point ContinusFocus:(BOOL) continus
+{
+    AVCaptureDevice *device =  videoInput.device;
+    [_captureSession beginConfiguration];
+    
+    if (device != nil) {
+        if (continus) {
+            if ([device isFocusPointOfInterestSupported] && [device isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+                NSError *error;
+                if ([device lockForConfiguration:&error]) {
+                    [device setFocusPointOfInterest:point];
+                    [device setFocusMode:AVCaptureFocusModeContinuousAutoFocus];
+                    [device unlockForConfiguration];
+                } else {
+                    NSLog(@"Error in Focus Mode %@", error);
+                }
+            }
+        }else{
+            if ([device isFocusPointOfInterestSupported] && [device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+                NSError *error;
+                if ([device lockForConfiguration:&error]) {
+                    [device setFocusPointOfInterest:point];
+                    [device setFocusMode:AVCaptureFocusModeAutoFocus];
+                    [device unlockForConfiguration];
+                } else {
+                    NSLog(@"Error in Focus Mode %@", error);
+                }
+            }
+        }
+        
+    }
+    
+    [_captureSession commitConfiguration];
+}
+
+-(void) flashConfig:(BOOL) enable
+{
+    AVCaptureDevice *device =  videoInput.device;
+    [_captureSession beginConfiguration];
+    
+    if (device != nil) {
+        if ([device hasFlash] && [device isFlashModeSupported:AVCaptureFlashModeAuto]) {
+            NSError *error;
+            if ([device lockForConfiguration:&error]) {
+                if (enable) {
+                    [device setFlashMode:AVCaptureFlashModeAuto];
+                }else{
+                    [device setFlashMode:AVCaptureFlashModeOff];
+                }
+                [device unlockForConfiguration];
+            } else {
+                NSLog(@"Error in Focus Mode %@", error);
+            }
+        }
+    }
+    
+    [_captureSession commitConfiguration];
+}
+
+
+-(BOOL) isCapturing
+{
+    return !capturePaused;
 }
 
 #pragma mark -
@@ -338,10 +431,6 @@
 
 - (void)processVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 {
-    if (capturePaused)
-    {
-        return;
-    }
     
     CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
     CVImageBufferRef cameraFrame = CMSampleBufferGetImageBuffer(sampleBuffer);
@@ -477,6 +566,11 @@
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
+    if (capturePaused)
+    {
+        return;
+    }
+    
     __unsafe_unretained id weakSelf = self;
     if (captureOutput == audioOutput)
     {
@@ -494,6 +588,7 @@
     }
     else
     {
+        
         if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
         {
             return;

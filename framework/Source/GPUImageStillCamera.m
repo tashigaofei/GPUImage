@@ -47,9 +47,31 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 @end
 
 @implementation GPUImageStillCamera
+@synthesize sampleBufferRef = _sampleBufferRef;
 
 #pragma mark -
 #pragma mark Initialization and teardown
+
+-(void) setSampleBufferRef:(CMSampleBufferRef) buffer
+{
+    //    CMSampleBufferCreateCopy(kCFAllocatorDefault,buffer, &_sampleBufferRef);
+    if (buffer) {
+        CFRetain(buffer);
+    }
+    if (_sampleBufferRef != NULL) {
+        CFRelease(_sampleBufferRef);
+        _sampleBufferRef = NULL;
+    }
+    _sampleBufferRef = buffer;
+}
+
+-(CMSampleBufferRef) sampleBufferRef
+{
+    if (CMSampleBufferIsValid(_sampleBufferRef)) {
+        return _sampleBufferRef;
+    }
+    return NULL;
+}
 
 - (id)initWithSessionPreset:(NSString *)sessionPreset cameraPosition:(AVCaptureDevicePosition)cameraPosition;
 {
@@ -244,6 +266,28 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     }];
     
     return;
+}
+
+- (void)captureOriginalPhotoWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block
+{
+    dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
+
+    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
+        block(imageDataSampleBuffer, error);
+        
+        dispatch_semaphore_signal(frameRenderingSemaphore);
+    }];
+}
+
+-(BOOL) isFocusSupport
+{
+    AVCaptureDevice *device =  videoInput.device;
+    if (device) {
+        if ([device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+            return YES;
+        }
+    }
+    return NO;
 }
 
 

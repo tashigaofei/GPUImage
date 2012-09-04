@@ -4,6 +4,10 @@
 #import "GPUImageOpenGLESContext.h"
 #import "GPUImageOutput.h"
 
+typedef void(^VoidBlockVoid)(void); // compatible with dispatch_block_t
+typedef void(^VoidBlockPoint)(CGPoint center); // compatible with dispatch_block_t
+
+
 //Delegate Protocal for Face Detection.
 @protocol GPUImageVideoCameraDelegate <NSObject>
 
@@ -32,7 +36,11 @@
     dispatch_semaphore_t frameRenderingSemaphore;
 
     id<GPUImageVideoCameraDelegate> _delegate;
+    
+    VoidBlockPoint  _focusCallbackBlock;
 }
+
+@property (nonatomic, copy) VoidBlockPoint focusCallbackBlock;
 
 /// The AVCaptureSession used to capture from the camera
 @property(readonly, retain, nonatomic) AVCaptureSession *captureSession;
@@ -123,5 +131,11 @@
 /** When benchmarking is enabled, this will keep a running average of the time from uploading, processing, and final recording or display
  */
 - (CGFloat)averageFrameDurationDuringCapture;
+
+-(BOOL) isCapturing;
+
+-(void) flashConfig:(BOOL) enable;
+
+-(void) focusAtPoint:(CGPoint)point ContinusFocus:(BOOL) continus;
 
 @end
