@@ -133,7 +133,6 @@
     
     [_captureSession commitConfiguration];
     
-    [self configFocusCallBack];
     [self focusAtPoint:CGPointMake(0.5, 0.5) ContinusFocus:YES];
     [self flashConfig:YES];
     
@@ -142,10 +141,6 @@
 
 - (void)dealloc 
 {
-    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
-        [_inputCamera removeObserver:self forKeyPath:@"adjustingFocus"];
-    }
-    
     [self stopCameraCapture];
     [videoOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
     [audioOutput setSampleBufferDelegate:nil queue:dispatch_get_main_queue()];
@@ -282,7 +277,8 @@
 	{
         startingCaptureTime = [NSDate date];
 		[_captureSession startRunning];
-	};
+        [self configFocusCallBack];
+    };
 }
 
 - (void)stopCameraCapture;
@@ -290,6 +286,10 @@
     if ([_captureSession isRunning])
     {
         [_captureSession stopRunning];
+        
+        if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
+            [_inputCamera removeObserver:self forKeyPath:@"adjustingFocus"];
+        }
     }
 }
 
@@ -431,7 +431,6 @@
 
 - (void)processVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 {
-    
     CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
     CVImageBufferRef cameraFrame = CMSampleBufferGetImageBuffer(sampleBuffer);
     int bufferWidth = CVPixelBufferGetWidth(cameraFrame);

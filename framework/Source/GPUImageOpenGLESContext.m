@@ -8,6 +8,7 @@
 }
 
 @end
+static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 
 @implementation GPUImageOpenGLESContext
 
@@ -31,18 +32,20 @@
 // Based on Colin Wheeler's example here: http://cocoasamurai.blogspot.com/2011/04/singletons-your-doing-them-wrong.html
 + (GPUImageOpenGLESContext *)sharedImageProcessingOpenGLESContext;
 {
-    static dispatch_once_t pred;
-    static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
-    
-    dispatch_once(&pred, ^{
+    if (!sharedImageProcessingOpenGLESContext) {
         sharedImageProcessingOpenGLESContext = [[GPUImageOpenGLESContext alloc] init];
-    });
+    }
     return sharedImageProcessingOpenGLESContext;
 }
 
 + (dispatch_queue_t)sharedOpenGLESQueue;
 {
     return [[self sharedImageProcessingOpenGLESContext] contextQueue];
+}
+
++(void) destroyContext
+{
+    sharedImageProcessingOpenGLESContext = nil;
 }
 
 + (void)useImageProcessingContext;

@@ -145,6 +145,7 @@
     runSynchronouslyOnVideoProcessingQueue(^{
         [self destroyDisplayFramebuffer];
     });
+    [GPUImageOpenGLESContext destroyContext];
 }
 
 #pragma mark -
