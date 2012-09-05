@@ -6,9 +6,9 @@
 #import <CoreMedia/CoreMedia.h>
 #import "GLProgram.h"
 
-#define GPUImageRotationSwapsWidthAndHeight(rotation) ((rotation) == kGPUImageRotateLeft || (rotation) == kGPUImageRotateRight || (rotation) == kGPUImageRotateRightFlipVertical)
+#define GPUImageRotationSwapsWidthAndHeight(rotation) ((rotation) == kGPUImageRotateLeft || (rotation) == kGPUImageRotateRight || (rotation) == kGPUImageRotateRightFlipVertical || (rotation) == kGPUImageRotateLeftFlipHorizonal || (rotation) == kGPUImageRotateRightFlipHorizonal)
 
-typedef enum { kGPUImageNoRotation, kGPUImageRotateLeft, kGPUImageRotateRight, kGPUImageFlipVertical, kGPUImageFlipHorizonal, kGPUImageRotateRightFlipVertical, kGPUImageRotate180 } GPUImageRotationMode;
+typedef enum { kGPUImageNoRotation, kGPUImageOrientationDown, kGPUImageRotateLeft, kGPUImageRotateRight, kGPUImageFlipHorizonal,kGPUImageRotate180FlipHorizonal,kGPUImageRotateLeftFlipHorizonal, kGPUImageRotateRightFlipHorizonal, kGPUImageFlipVertical ,kGPUImageRotateRightFlipVertical, kGPUImageRotate180 } GPUImageRotationMode;
 
 @interface GPUImageOpenGLESContext : NSObject
 

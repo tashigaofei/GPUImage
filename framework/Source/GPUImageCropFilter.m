@@ -207,6 +207,8 @@ NSString *const kGPUImageCropFragmentShaderString =  SHADER_STRING
             cropTextureCoordinates[6] = maxY; // 1,1
             cropTextureCoordinates[7] = 1.0 - minX;
         }; break;
+        default:
+            break;
     }    
 }
 

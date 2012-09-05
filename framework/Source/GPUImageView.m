@@ -282,12 +282,12 @@
 
 + (const GLfloat *)textureCoordinatesForRotation:(GPUImageRotationMode)rotationMode;
 {
-//    static const GLfloat noRotationTextureCoordinates[] = {
-//        0.0f, 0.0f,
-//        1.0f, 0.0f,
-//        0.0f, 1.0f,
-//        1.0f, 1.0f,
-//    };
+    //    static const GLfloat noRotationTextureCoordinates[] = {
+    //        0.0f, 0.0f,
+    //        1.0f, 0.0f,
+    //        0.0f, 1.0f,
+    //        1.0f, 1.0f,
+    //    };
     
     static const GLfloat noRotationTextureCoordinates[] = {
         0.0f, 1.0f,
@@ -295,21 +295,35 @@
         0.0f, 0.0f,
         1.0f, 0.0f,
     };
-
+    
     static const GLfloat rotateRightTextureCoordinates[] = {
         1.0f, 1.0f,
         1.0f, 0.0f,
         0.0f, 1.0f,
         0.0f, 0.0f,
     };
-
+    
     static const GLfloat rotateLeftTextureCoordinates[] = {
         0.0f, 0.0f,
         0.0f, 1.0f,
         1.0f, 0.0f,
         1.0f, 1.0f,
     };
-        
+    
+    static const GLfloat rotateLeftHorizontalFlipTextureCoordinates[] = {
+        0.0f, 1.0f,
+        0.0f, 0.0f,
+        1.0f, 1.0f,
+        1.0f, 0.0f,
+    };
+    
+    static const GLfloat rotateRightHorizontalFlipTextureCoordinates[] = {
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 0.0f,
+        0.0f, 1.0f,
+    };
+    
     static const GLfloat verticalFlipTextureCoordinates[] = {
         0.0f, 0.0f,
         1.0f, 0.0f,
@@ -338,6 +352,13 @@
         0.0f, 1.0f,
     };
     
+    static const GLfloat rotate180HorizontalFlipTextureCoordinates[] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f, 1.0f,
+        1.0f, 1.0f,
+    };
+    
     switch(rotationMode)
     {
         case kGPUImageNoRotation: return noRotationTextureCoordinates;
@@ -347,8 +368,15 @@
         case kGPUImageFlipHorizonal: return horizontalFlipTextureCoordinates;
         case kGPUImageRotateRightFlipVertical: return rotateRightVerticalFlipTextureCoordinates;
         case kGPUImageRotate180: return rotate180TextureCoordinates;
+            
+        case kGPUImageRotateLeftFlipHorizonal: return rotateLeftHorizontalFlipTextureCoordinates;
+        case kGPUImageRotateRightFlipHorizonal: return rotateRightHorizontalFlipTextureCoordinates;
+        case kGPUImageRotate180FlipHorizonal: return rotate180HorizontalFlipTextureCoordinates;
+        default:return noRotationTextureCoordinates;
+            
     }
 }
+
 
 #pragma mark -
 #pragma mark GPUInput protocol

@@ -466,6 +466,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
         case kGPUImageFlipHorizonal: return horizontalFlipTextureCoordinates;
         case kGPUImageRotateRightFlipVertical: return rotateRightVerticalFlipTextureCoordinates;
         case kGPUImageRotate180: return rotate180TextureCoordinates;
+        default: return noRotationTextureCoordinates;
     }
 }
 
@@ -776,6 +777,9 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
             rotatedPoint.x = 1.0 - pointToRotate.x;
             rotatedPoint.y = 1.0 - pointToRotate.y;
         }; break;
+        default:
+            break;
+
     }
     
     return rotatedPoint;
