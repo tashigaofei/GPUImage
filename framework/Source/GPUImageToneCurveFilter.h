@@ -1,11 +1,16 @@
 #import "GPUImageFilter.h"
 
 @interface GPUImageToneCurveFilter : GPUImageFilter
-
+{
+    GLint brightnessUniform;
+    GLint contrastUniform;
+}
 @property(readwrite, nonatomic, copy) NSArray *redControlPoints;
 @property(readwrite, nonatomic, copy) NSArray *greenControlPoints;
 @property(readwrite, nonatomic, copy) NSArray *blueControlPoints;
 @property(readwrite, nonatomic, copy) NSArray *rgbCompositeControlPoints;
+@property(readwrite, nonatomic) CGFloat brightness;
+@property(readwrite, nonatomic) CGFloat contrast;
 
 // Initialization and teardown
 - (id)initWithACV:(NSString*)curveFile;

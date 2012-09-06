@@ -110,6 +110,9 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
  uniform sampler2D inputImageTexture;
  uniform sampler2D toneCurveTexture;
  
+ uniform lowp float brightness;
+ uniform lowp float contrast;
+ 
  void main()
  {
      lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);
@@ -117,7 +120,10 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      lowp float greenCurveValue = texture2D(toneCurveTexture, vec2(textureColor.g, 0.0)).g;
      lowp float blueCurveValue = texture2D(toneCurveTexture, vec2(textureColor.b, 0.0)).b;
      
-     gl_FragColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
+     textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
+     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
+     gl_FragColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+
  }
 );
 
@@ -139,6 +145,8 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 @synthesize redControlPoints = _redControlPoints;
 @synthesize greenControlPoints = _greenControlPoints;
 @synthesize blueControlPoints = _blueControlPoints;
+@synthesize brightness = _brightness;
+@synthesize contrast = _contrast;
 
 #pragma mark -
 #pragma mark Initialization and teardown
@@ -157,6 +165,13 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self setRedControlPoints:defaultCurve];
     [self setGreenControlPoints:defaultCurve];
     [self setBlueControlPoints:defaultCurve];
+    
+    brightnessUniform = [filterProgram uniformIndex:@"brightness"];
+    self.brightness = 0;
+    
+    contrastUniform = [filterProgram uniformIndex:@"contrast"];
+    self.contrast = 1.0;
+    
     
     return self;
 }
@@ -179,6 +194,13 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self setBlueControlPoints:curve.blueCurvePoints];
     
     curve = nil;
+    
+    brightnessUniform = [filterProgram uniformIndex:@"brightness"];
+    self.brightness = 0;
+    
+    contrastUniform = [filterProgram uniformIndex:@"contrast"];
+    self.contrast = 1.0;
+    
     
     return self;
 }
@@ -203,6 +225,20 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
         toneCurveTexture = 0;
         free(toneCurveByteArray);
     }
+}
+
+- (void)setBrightness:(CGFloat)newValue;
+{
+    _brightness = newValue;
+    
+    [self setFloat:_brightness forUniform:brightnessUniform program:filterProgram];
+}
+
+- (void)setContrast:(CGFloat)newValue;
+{
+    _contrast = newValue;
+    
+    [self setFloat:_contrast forUniform:contrastUniform program:filterProgram];
 }
 
 #pragma mark -

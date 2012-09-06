@@ -52,7 +52,7 @@
     }
     
 	cameraProcessingQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.cameraProcessingQueue", NULL);
-	audioProcessingQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.audioProcessingQueue", NULL);
+//	audioProcessingQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.audioProcessingQueue", NULL);
     frameRenderingSemaphore = dispatch_semaphore_create(1);
 
 	_frameRate = 0; // This will not set frame rate unless this value gets set to 1 or above
@@ -105,7 +105,7 @@
 	
 	// Add the video frame output	
 	videoOutput = [[AVCaptureVideoDataOutput alloc] init];
-	[videoOutput setAlwaysDiscardsLateVideoFrames:NO];
+	[videoOutput setAlwaysDiscardsLateVideoFrames:YES];
     
 	[videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
     
@@ -431,12 +431,15 @@
 
 - (void)processVideoSampleBuffer:(CMSampleBufferRef)sampleBuffer;
 {
-    CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
+//    CFAbsoluteTime startTime = CFAbsoluteTimeGetCurrent();
     CVImageBufferRef cameraFrame = CMSampleBufferGetImageBuffer(sampleBuffer);
     int bufferWidth = CVPixelBufferGetWidth(cameraFrame);
     int bufferHeight = CVPixelBufferGetHeight(cameraFrame);
     
-	CMTime currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
+    int bufferSize = CVPixelBufferGetDataSize(cameraFrame);
+    NSLog(@"size is %d, width is %d, height is %d", bufferSize, bufferWidth, bufferHeight);
+    
+    CMTime currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
 
     [GPUImageOpenGLESContext useImageProcessingContext];
 
@@ -492,17 +495,17 @@
         CFRelease(texture);
         outputTexture = 0;
         
-        if (_runBenchmark)
-        {
-            numberOfFramesCaptured++;
-            if (numberOfFramesCaptured > INITIALFRAMESTOIGNOREFORBENCHMARK)
-            {
-                CFAbsoluteTime currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime);
-                totalFrameTimeDuringCapture += currentFrameTime;
-                NSLog(@"Average frame time : %f ms", [self averageFrameDurationDuringCapture]);
-                NSLog(@"Current frame time : %f ms", 1000.0 * currentFrameTime);
-            }
-        }
+//        if (_runBenchmark)
+//        {
+//            numberOfFramesCaptured++;
+//            if (numberOfFramesCaptured > INITIALFRAMESTOIGNOREFORBENCHMARK)
+//            {
+//                CFAbsoluteTime currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime);
+//                totalFrameTimeDuringCapture += currentFrameTime;
+//                NSLog(@"Average frame time : %f ms", [self averageFrameDurationDuringCapture]);
+//                NSLog(@"Current frame time : %f ms", 1000.0 * currentFrameTime);
+//            }
+//        }
     }
     else
     {
@@ -535,16 +538,16 @@
         
         CVPixelBufferUnlockBaseAddress(cameraFrame, 0);
         
-        if (_runBenchmark)
-        {
-            numberOfFramesCaptured++;
-            if (numberOfFramesCaptured > INITIALFRAMESTOIGNOREFORBENCHMARK)
-            {
-                CFAbsoluteTime currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime);
-                totalFrameTimeDuringCapture += currentFrameTime;
-            }
-        }
-    }  
+//        if (_runBenchmark)
+//        {
+//            numberOfFramesCaptured++;
+//            if (numberOfFramesCaptured > INITIALFRAMESTOIGNOREFORBENCHMARK)
+//            {
+//                CFAbsoluteTime currentFrameTime = (CFAbsoluteTimeGetCurrent() - startTime);
+//                totalFrameTimeDuringCapture += currentFrameTime;
+//            }
+//        }
+    }
 }
 
 - (void)processAudioSampleBuffer:(CMSampleBufferRef)sampleBuffer;
@@ -565,10 +568,6 @@
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
-    if (capturePaused)
-    {
-        return;
-    }
     
     __unsafe_unretained id weakSelf = self;
     if (captureOutput == audioOutput)
@@ -596,13 +595,16 @@
         CFRetain(sampleBuffer);
         dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             //Feature Detection Hook.
-            if (self.delegate)
+            if (!capturePaused)
             {
-                [self.delegate willOutputSampleBuffer:sampleBuffer];
+                if (self.delegate)
+                {
+                    [self.delegate willOutputSampleBuffer:sampleBuffer];
+                }
+                
+                [weakSelf processVideoSampleBuffer:sampleBuffer];
+                
             }
-            
-            [weakSelf processVideoSampleBuffer:sampleBuffer];
-            
             CFRelease(sampleBuffer);
             dispatch_semaphore_signal(frameRenderingSemaphore);
         });

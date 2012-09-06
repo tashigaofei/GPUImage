@@ -57,7 +57,7 @@ NSString *const kGPUImageGaussianSelectiveBlurFragmentShaderString = SHADER_STRI
     self.initialFilters = [NSArray arrayWithObjects:blurFilter, selectiveFocusFilter, nil];
     self.terminalFilter = selectiveFocusFilter;
     
-    self.blurSize = 1.0f;
+    self.blurSize = 5.0f;
     
     self.excludeCircleRadius = 80.0/320.0;
     self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
