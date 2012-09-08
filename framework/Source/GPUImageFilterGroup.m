@@ -72,6 +72,11 @@
 
 - (void)removeAllTargets;
 {
+    for (GPUImageFilter *currentFilter in filters)
+    {
+        [currentFilter destroyFilterFBO];
+    }
+
     [_terminalFilter removeAllTargets];
 }
 

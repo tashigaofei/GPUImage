@@ -716,6 +716,12 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
     filterSourceTexture = newInputTexture;
 }
 
+-(void) removeAllTargets
+{
+    [self destroyFilterFBO];
+    [super removeAllTargets];
+}
+
 - (void)recreateFilterFBO
 {
     cachedMaximumOutputSize = CGSizeZero;
