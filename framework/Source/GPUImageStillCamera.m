@@ -269,7 +269,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     return;
 }
 
-- (void)captureOriginalPhotoWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block
+- (void)captureSampleBufferWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block
 {
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
@@ -283,15 +283,6 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //    reportAvailableMemoryForGPUImage(@"after processing");
 }
 
-
-
-- (void)capturePhotoWithCompletionHandler:(void (^)(UIImage* imageSample, NSError *error))block
-{
-    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
-        UIImage *image = [self imageFromSampleBuffer:imageDataSampleBuffer];
-        block(image, error);
-    }];
-}
 
 -(UIImage *) imageFromSampleBuffer:(CMSampleBufferRef) sampleBuffer {
     

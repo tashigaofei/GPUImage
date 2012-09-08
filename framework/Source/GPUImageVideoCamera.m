@@ -180,7 +180,9 @@
         BOOL adjustingFocus =[[change objectForKey:NSKeyValueChangeNewKey] boolValue];
         if (adjustingFocus && _focusCallbackBlock != NULL) {
             dispatch_async(dispatch_get_main_queue(), ^(){
-                _focusCallbackBlock(_inputCamera.focusPointOfInterest);
+                if (_focusCallbackBlock) {
+                    _focusCallbackBlock(_inputCamera.focusPointOfInterest);
+                }
             });
         }
     }
@@ -188,9 +190,38 @@
 
 -(void) configFocusCallBack
 {
-    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
-        [_inputCamera addObserver:self forKeyPath:@"adjustingFocus" options:NSKeyValueObservingOptionNew context:nil];
-    }
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+	
+	for (AVCaptureDevice *device in devices)
+	{
+		if ([device position] == AVCaptureDevicePositionBack)
+        {
+            if ([device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+                [device addObserver:self forKeyPath:@"adjustingFocus" options:NSKeyValueObservingOptionNew context:nil];
+            }
+        }
+	}
+//    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+//        [_inputCamera addObserver:self forKeyPath:@"adjustingFocus" options:NSKeyValueObservingOptionNew context:nil];
+//    }
+}
+
+-(void) removeFocusCallBack
+{
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+	
+	for (AVCaptureDevice *device in devices)
+	{
+		if ([device position] == AVCaptureDevicePositionBack)
+        {
+            if ([device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+                [device removeObserver:self forKeyPath:@"adjustingFocus"];
+            }
+        }
+	}
+//    if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
+//        [_inputCamera removeObserver:self forKeyPath:@"adjustingFocus"];
+//    }
 }
 
 -(void) focusAtPoint:(CGPoint)point ContinusFocus:(BOOL) continus
@@ -275,7 +306,7 @@
 {
     if (![_captureSession isRunning])
 	{
-        startingCaptureTime = [NSDate date];
+//        startingCaptureTime = [NSDate date];
 		[_captureSession startRunning];
         [self configFocusCallBack];
     };
@@ -285,22 +316,23 @@
 {
     if ([_captureSession isRunning])
     {
+        [self removeFocusCallBack];
         [_captureSession stopRunning];
-        
-        if ([_inputCamera isFocusModeSupported:AVCaptureFocusModeContinuousAutoFocus]) {
-            [_inputCamera removeObserver:self forKeyPath:@"adjustingFocus"];
-        }
     }
 }
 
 - (void)pauseCameraCapture;
 {
-    capturePaused = YES;
+    dispatch_sync(cameraProcessingQueue, ^{
+        capturePaused = YES;
+    });
 }
 
 - (void)resumeCameraCapture;
 {
-    capturePaused = NO;
+    dispatch_sync(cameraProcessingQueue, ^{
+        capturePaused = NO;
+    });
 }
 
 - (void)rotateCamera
@@ -568,20 +600,24 @@
 
 - (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection
 {
+    if (capturePaused)
+    {
+        return;
+    }
     
     __unsafe_unretained id weakSelf = self;
     if (captureOutput == audioOutput)
     {
-//        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
-//        {
-//            return;
-//        }
-
+        //        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
+        //        {
+        //            return;
+        //        }
+        
         CFRetain(sampleBuffer);
         dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             [weakSelf processAudioSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
-//            dispatch_semaphore_signal(frameRenderingSemaphore);
+            //            dispatch_semaphore_signal(frameRenderingSemaphore);
         });
     }
     else
@@ -591,20 +627,17 @@
         {
             return;
         }
-
+        
         CFRetain(sampleBuffer);
         dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             //Feature Detection Hook.
-            if (!capturePaused)
+            if (self.delegate)
             {
-                if (self.delegate)
-                {
-                    [self.delegate willOutputSampleBuffer:sampleBuffer];
-                }
-                
-                [weakSelf processVideoSampleBuffer:sampleBuffer];
-                
+                [self.delegate willOutputSampleBuffer:sampleBuffer];
             }
+            
+            [weakSelf processVideoSampleBuffer:sampleBuffer];
+            
             CFRelease(sampleBuffer);
             dispatch_semaphore_signal(frameRenderingSemaphore);
         });
