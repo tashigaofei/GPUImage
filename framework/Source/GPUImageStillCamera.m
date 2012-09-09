@@ -293,11 +293,9 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             CFRetain(imageDataSampleBuffer);
             NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
             UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
-            if ( ![NSKeyedArchiver archiveRootObject:image toFile:path]) {
-//                NSLog(@"archive error");
-            }
+            NSData *imageData = UIImageJPEGRepresentation(image, 0.8);
+            [imageData writeToFile:path atomically:YES];
             CFRelease(imageDataSampleBuffer);
-//            NSLog(@"archive already");
         });
         
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(imageDataSampleBuffer);
