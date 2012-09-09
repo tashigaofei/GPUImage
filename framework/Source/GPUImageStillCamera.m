@@ -274,13 +274,10 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
     [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
-        NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
-        if ([[NSFileManager defaultManager] isDeletableFileAtPath:path]) {
-            [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-        }
         __block __unsafe_unretained  id myself = self;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
             CFRetain(imageDataSampleBuffer);
+            NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
             UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
             if ( ![NSKeyedArchiver archiveRootObject:image toFile:path]) {
                 NSLog(@"archive error");
