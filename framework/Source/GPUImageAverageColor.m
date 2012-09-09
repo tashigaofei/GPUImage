@@ -70,7 +70,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
     stageFramebuffers = [[NSMutableArray alloc] init];
     stageSizes = [[NSMutableArray alloc] init];
     
-    __unsafe_unretained GPUImageAverageColor *weakSelf = self;
+    __weak GPUImageAverageColor *weakSelf = self;
     [self setFrameProcessingCompletionBlock:^(GPUImageOutput *filter, CMTime frameTime) {
         [weakSelf extractAverageColorAtFrameTime:frameTime];
     }];

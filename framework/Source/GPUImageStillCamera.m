@@ -1,7 +1,6 @@
 // 2448x3264 pixel image = 31,961,088 bytes for uncompressed RGBA
 
 #import "GPUImageStillCamera.h"
-
 void stillImageDataReleaseCallback(void *releaseRefCon, const void *baseAddress)
 {
     free((void *)baseAddress);
@@ -9,6 +8,7 @@ void stillImageDataReleaseCallback(void *releaseRefCon, const void *baseAddress)
 
 void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize finalSize, CMSampleBufferRef *sampleBuffer)
 {
+
     CGSize originalSize = CGSizeMake(CVPixelBufferGetWidth(cameraFrame), CVPixelBufferGetHeight(cameraFrame));
 
     CVPixelBufferLockBaseAddress(cameraFrame, 0);
@@ -274,23 +274,23 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
     [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
-        NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
-        if ([[NSFileManager defaultManager] isDeletableFileAtPath:path]) {
+        NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/originalimage"];
+        __block __weak  id myself = self;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
             [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-        }
-        __block __unsafe_unretained  id myself = self;
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
-            CFRetain(imageDataSampleBuffer);
-            UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
-            if ( ![NSKeyedArchiver archiveRootObject:image toFile:path]) {
-                NSLog(@"archive error");
+             if (imageDataSampleBuffer) {
+                CFRetain(imageDataSampleBuffer);
+                [myself imageFromSampleBuffer:imageDataSampleBuffer];
+                UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
+                NSData *jpgData = UIImageJPEGRepresentation(image,1);
+                [jpgData writeToFile:path atomically:YES];
+                CFRelease(imageDataSampleBuffer);
+                jpgData = nil;
             }
-            CFRelease(imageDataSampleBuffer);
-            NSLog(@"archive already");
         });
-        
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(imageDataSampleBuffer);
         CMSampleBufferRef sampleBuffer = NULL;
+        //TODO
         GPUImageCreateResizedSampleBuffer(imageBuffer, CGSizeMake(1152, 1536), &sampleBuffer);
         block(sampleBuffer, error);
         CFRelease(sampleBuffer);
@@ -348,6 +348,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     
     return image;
 }
+
 
 -(BOOL) isFocusSupport
 {

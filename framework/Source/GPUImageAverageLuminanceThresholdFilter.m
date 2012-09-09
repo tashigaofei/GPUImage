@@ -31,8 +31,8 @@
     luminanceThresholdFilter = [[GPUImageLuminanceThresholdFilter alloc] init];
     [self addFilter:luminanceThresholdFilter];
     
-    __unsafe_unretained GPUImageAverageLuminanceThresholdFilter *weakSelf = self;
-    __unsafe_unretained GPUImageLuminanceThresholdFilter *weakThreshold = luminanceThresholdFilter;
+    __weak GPUImageAverageLuminanceThresholdFilter *weakSelf = self;
+    __weak GPUImageLuminanceThresholdFilter *weakThreshold = luminanceThresholdFilter;
     
     [luminosityFilter setLuminosityProcessingFinishedBlock:^(CGFloat luminosity, CMTime frameTime) {
         weakThreshold.threshold = luminosity * weakSelf.thresholdMultiplier;

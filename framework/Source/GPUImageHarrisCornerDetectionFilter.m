@@ -93,8 +93,8 @@ NSString *const kGPUImageSimpleThresholdFragmentShaderString = SHADER_STRING
     [self addFilter:derivativeFilter];
 
 #ifdef DEBUGFEATUREDETECTION
-    __unsafe_unretained NSMutableArray *weakIntermediateImages = _intermediateImages;
-    __unsafe_unretained GPUImageFilter *weakFilter = derivativeFilter;
+    __weak NSMutableArray *weakIntermediateImages = _intermediateImages;
+    __weak GPUImageFilter *weakFilter = derivativeFilter;
     [derivativeFilter setFrameProcessingCompletionBlock:^(GPUImageOutput *filter, CMTime frameTime){
         UIImage *intermediateImage = [weakFilter imageFromCurrentlyProcessedOutput];
         [weakIntermediateImages addObject:intermediateImage];
@@ -155,7 +155,7 @@ NSString *const kGPUImageSimpleThresholdFragmentShaderString = SHADER_STRING
 
     
 #ifdef DEBUGFEATUREDETECTION
-    __unsafe_unretained GPUImageHarrisCornerDetectionFilter *weakSelf = self;
+    __weak GPUImageHarrisCornerDetectionFilter *weakSelf = self;
     weakFilter = colorPackingFilter;
     [colorPackingFilter setFrameProcessingCompletionBlock:^(GPUImageOutput *filter, CMTime frameTime){
         NSLog(@"Triggered response from compaction filter");
@@ -166,7 +166,7 @@ NSString *const kGPUImageSimpleThresholdFragmentShaderString = SHADER_STRING
         [weakSelf extractCornerLocationsFromImageAtFrameTime:frameTime];
     }];
 #else
-    __unsafe_unretained GPUImageHarrisCornerDetectionFilter *weakSelf = self;
+    __weak GPUImageHarrisCornerDetectionFilter *weakSelf = self;
     [colorPackingFilter setFrameProcessingCompletionBlock:^(GPUImageOutput *filter, CMTime frameTime) {
         [weakSelf extractCornerLocationsFromImageAtFrameTime:frameTime];
     }];

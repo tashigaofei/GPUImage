@@ -605,7 +605,7 @@
         return;
     }
     
-    __unsafe_unretained id weakSelf = self;
+    __weak id weakSelf = self;
     if (captureOutput == audioOutput)
     {
         //        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)

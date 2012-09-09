@@ -73,7 +73,7 @@ NSString *const kGPUImageLuminosityFragmentShaderString = SHADER_STRING
     stageFramebuffers = [[NSMutableArray alloc] init];
     stageSizes = [[NSMutableArray alloc] init];
     
-    __unsafe_unretained GPUImageLuminosity *weakSelf = self;
+    __weak GPUImageLuminosity *weakSelf = self;
     [self setFrameProcessingCompletionBlock:^(GPUImageOutput *filter, CMTime frameTime) {
         [weakSelf extractLuminosityAtFrameTime:frameTime];
     }];

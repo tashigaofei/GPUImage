@@ -5,7 +5,7 @@
 
 @interface GPUImageTextureOutput : NSObject <GPUImageInput>
 
-@property(readwrite, unsafe_unretained, nonatomic) id<GPUImageTextureOutputDelegate> delegate;
+@property(readwrite, weak, nonatomic) id<GPUImageTextureOutputDelegate> delegate;
 @property(readonly) GLint texture;
 @property(nonatomic) BOOL enabled;
 

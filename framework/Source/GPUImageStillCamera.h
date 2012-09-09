@@ -1,5 +1,4 @@
 #import "GPUImageVideoCamera.h"
-
 void stillImageDataReleaseCallback(void *releaseRefCon, const void *baseAddress);
 void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize finalSize, CMSampleBufferRef *sampleBuffer);
 
@@ -18,4 +17,6 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 
 - (void)captureSampleBufferWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block;
 -(BOOL) isFocusSupport;
+
+
 @end

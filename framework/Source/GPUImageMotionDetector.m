@@ -51,7 +51,7 @@ NSString *const kGPUImageMotionComparisonFragmentShaderString = SHADER_STRING
     // End with the average color for the scene to determine the centroid
     averageColor = [[GPUImageAverageColor alloc] init];
     
-    __unsafe_unretained GPUImageMotionDetector *weakSelf = self;
+    __weak GPUImageMotionDetector *weakSelf = self;
 
     [averageColor setColorAverageProcessingFinishedBlock:^(CGFloat redComponent, CGFloat greenComponent, CGFloat blueComponent, CGFloat alphaComponent, CMTime frameTime) {
         if (weakSelf.motionDetectionBlock != NULL)

@@ -113,7 +113,7 @@
 
 - (void)processAsset
 {
-    __unsafe_unretained GPUImageMovie *weakSelf = self;
+    __weak GPUImageMovie *weakSelf = self;
     NSError *error = nil;
     reader = [AVAssetReader assetReaderWithAsset:self.asset error:&error];
 
@@ -181,7 +181,7 @@
         CMSampleBufferRef sampleBufferRef = [readerVideoTrackOutput copyNextSampleBuffer];
         if (sampleBufferRef) 
         {
-            __unsafe_unretained GPUImageMovie *weakSelf = self;
+            __weak GPUImageMovie *weakSelf = self;
             runSynchronouslyOnVideoProcessingQueue(^{
                 [weakSelf processMovieFrame:sampleBufferRef];
             });
