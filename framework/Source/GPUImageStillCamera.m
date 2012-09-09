@@ -95,7 +95,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 
 - (id)init;
 {
-    if (!(self = [self initWithSessionPreset:AVCaptureSessionPresetHigh cameraPosition:AVCaptureDevicePositionBack]))
+    if (!(self = [self initWithSessionPreset:AVCaptureSessionPresetPhoto cameraPosition:AVCaptureDevicePositionBack]))
     {
 		return nil;
     }
@@ -274,11 +274,26 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
     [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
+        NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
+        if ([[NSFileManager defaultManager] isDeletableFileAtPath:path]) {
+            [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        }
+        __block __unsafe_unretained  id myself = self;
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0), ^{
+            CFRetain(imageDataSampleBuffer);
+            UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
+            if ( ![NSKeyedArchiver archiveRootObject:image toFile:path]) {
+                NSLog(@"archive error");
+            }
+            CFRelease(imageDataSampleBuffer);
+            NSLog(@"archive already");
+        });
+        
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(imageDataSampleBuffer);
         CMSampleBufferRef sampleBuffer = NULL;
         GPUImageCreateResizedSampleBuffer(imageBuffer, CGSizeMake(1152, 1536), &sampleBuffer);
         block(sampleBuffer, error);
-        
+        CFRelease(sampleBuffer);
     }];
 }
 
@@ -321,7 +336,12 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     CGDataProviderRelease(dataProvider);
     
     // Create and return an image object to represent the Quartz image.
-    UIImage *image = [UIImage imageWithCGImage:cgImage];
+    UIImage *image = nil;
+    if ([self cameraPosition] == AVCaptureDevicePositionBack) {
+        image = [UIImage imageWithCGImage:cgImage scale:1.0 orientation:UIImageOrientationRight];
+    }else{
+        image = [UIImage imageWithCGImage:cgImage scale:1.0 orientation:UIImageOrientationLeftMirrored];
+    }
     CGImageRelease(cgImage);
     
     CVPixelBufferUnlockBaseAddress(imageBuffer, 0);
