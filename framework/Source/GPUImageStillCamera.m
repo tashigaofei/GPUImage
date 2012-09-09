@@ -269,6 +269,20 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     return;
 }
 
+-(CGSize) inputSize
+{
+    NSString* deviceType = [UIDevice currentDevice].model;
+    
+    if ([deviceType rangeOfString:@"iPhone"].location != NSNotFound) {
+        return CGSizeMake(1152, 1536);
+    }else if ([deviceType rangeOfString:@"iPod"].location != NSNotFound){
+        return CGSizeMake(720, 960);
+    }else if ([deviceType rangeOfString:@"iPad"].location != NSNotFound){
+        return CGSizeMake(1152, 1536);
+    }
+    return CGSizeMake(720, 960);
+}
+
 - (void)captureSampleBufferWithCompletionHandler:(void (^)(CMSampleBufferRef imageSampleBuffer, NSError *error))block
 {
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
@@ -280,15 +294,15 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             NSString *path = [NSHomeDirectory() stringByAppendingString:@"/tmp/cameraOriginalImage"];
             UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
             if ( ![NSKeyedArchiver archiveRootObject:image toFile:path]) {
-                NSLog(@"archive error");
+//                NSLog(@"archive error");
             }
             CFRelease(imageDataSampleBuffer);
-            NSLog(@"archive already");
+//            NSLog(@"archive already");
         });
         
         CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(imageDataSampleBuffer);
         CMSampleBufferRef sampleBuffer = NULL;
-        GPUImageCreateResizedSampleBuffer(imageBuffer, CGSizeMake(1152, 1536), &sampleBuffer);
+        GPUImageCreateResizedSampleBuffer(imageBuffer, [self inputSize], &sampleBuffer);
         block(sampleBuffer, error);
         CFRelease(sampleBuffer);
     }];
