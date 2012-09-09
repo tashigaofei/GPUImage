@@ -323,16 +323,12 @@
 
 - (void)pauseCameraCapture;
 {
-    dispatch_sync(cameraProcessingQueue, ^{
         capturePaused = YES;
-    });
 }
 
 - (void)resumeCameraCapture;
 {
-    dispatch_sync(cameraProcessingQueue, ^{
         capturePaused = NO;
-    });
 }
 
 - (void)rotateCamera
@@ -614,7 +610,7 @@
         //        }
         
         CFRetain(sampleBuffer);
-        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             [weakSelf processAudioSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
             //            dispatch_semaphore_signal(frameRenderingSemaphore);
@@ -629,7 +625,7 @@
         }
         
         CFRetain(sampleBuffer);
-        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             //Feature Detection Hook.
             if (self.delegate)
             {

@@ -140,7 +140,7 @@
 {
     hasProcessedImage = YES;
   
-    dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+    dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
