@@ -610,7 +610,7 @@
         //        }
         
         CFRetain(sampleBuffer);
-        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             [weakSelf processAudioSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
             //            dispatch_semaphore_signal(frameRenderingSemaphore);
@@ -625,7 +625,7 @@
 //        }
         
         CFRetain(sampleBuffer);
-        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             //Feature Detection Hook.
             if (self.delegate)
             {
