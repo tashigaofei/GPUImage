@@ -1,7 +1,8 @@
-#import "GPUImageFilter.h"
+#import "GPUImage.h"
 
-@interface GPUImageToneCurveFilter : GPUImageFilter
+@interface GPUImageToneCurveFilter :GPUImageTwoInputFilter
 {
+    GPUImagePicture *_lightPicture;
     GLint brightnessUniform;
     GLint contrastUniform;
 }
