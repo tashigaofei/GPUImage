@@ -176,16 +176,16 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     if (outputSettings == nil) 
     {
         outputSettings = [[NSMutableDictionary alloc] init];
-        [outputSettings setObject:AVVideoCodecH264 forKey:AVVideoCodecKey];
-        [outputSettings setObject:[NSNumber numberWithInt:videoSize.width] forKey:AVVideoWidthKey];
-        [outputSettings setObject:[NSNumber numberWithInt:videoSize.height] forKey:AVVideoHeightKey];
+        outputSettings[AVVideoCodecKey] = AVVideoCodecH264;
+        outputSettings[AVVideoWidthKey] = [NSNumber numberWithInt:videoSize.width];
+        outputSettings[AVVideoHeightKey] = [NSNumber numberWithInt:videoSize.height];
     }
     // custom output settings specified
     else 
     {
-		NSString *videoCodec = [outputSettings objectForKey:AVVideoCodecKey];
-		NSNumber *width = [outputSettings objectForKey:AVVideoWidthKey];
-		NSNumber *height = [outputSettings objectForKey:AVVideoHeightKey];
+		NSString *videoCodec = outputSettings[AVVideoCodecKey];
+		NSNumber *width = outputSettings[AVVideoWidthKey];
+		NSNumber *height = outputSettings[AVVideoHeightKey];
 		
 		NSAssert(videoCodec && width && height, @"OutputSettings is missing required parameters.");
     }
@@ -217,10 +217,9 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     assetWriterVideoInput.expectsMediaDataInRealTime = _encodingLiveVideo;
     
     // You need to use BGRA for the video in order to get realtime encoding. I use a color-swizzling shader to line up glReadPixels' normal RGBA output with the movie input's BGRA.
-    NSDictionary *sourcePixelBufferAttributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:kCVPixelFormatType_32BGRA], kCVPixelBufferPixelFormatTypeKey,
-                                                           [NSNumber numberWithInt:videoSize.width], kCVPixelBufferWidthKey,
-                                                           [NSNumber numberWithInt:videoSize.height], kCVPixelBufferHeightKey,
-                                                           nil];
+    NSDictionary *sourcePixelBufferAttributesDictionary = @{(id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA),
+                                                           (id)kCVPixelBufferWidthKey: [NSNumber numberWithInt:videoSize.width],
+                                                           (id)kCVPixelBufferHeightKey: [NSNumber numberWithInt:videoSize.height]};
 //    NSDictionary *sourcePixelBufferAttributesDictionary = [NSDictionary dictionaryWithObjectsAndKeys: [NSNumber numberWithInt:kCVPixelFormatType_32ARGB], kCVPixelBufferPixelFormatTypeKey,
 //                                                           nil];
         
@@ -600,14 +599,12 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             bzero( &acl, sizeof(acl));
             acl.mChannelLayoutTag = kAudioChannelLayoutTag_Mono;
             
-            audioOutputSettings = [NSDictionary dictionaryWithObjectsAndKeys:
-                                         [ NSNumber numberWithInt: kAudioFormatMPEG4AAC], AVFormatIDKey,
-                                         [ NSNumber numberWithInt: 1 ], AVNumberOfChannelsKey,
-                                         [ NSNumber numberWithFloat: preferredHardwareSampleRate ], AVSampleRateKey,
-                                         [ NSData dataWithBytes: &acl length: sizeof( acl ) ], AVChannelLayoutKey,
+            audioOutputSettings = @{AVFormatIDKey: @(kAudioFormatMPEG4AAC),
+                                         AVNumberOfChannelsKey: @1,
+                                         AVSampleRateKey: [ NSNumber numberWithFloat: preferredHardwareSampleRate ],
+                                         AVChannelLayoutKey: [ NSData dataWithBytes: &acl length: sizeof( acl ) ],
                                          //[ NSNumber numberWithInt:AVAudioQualityLow], AVEncoderAudioQualityKey,
-                                         [ NSNumber numberWithInt: 64000 ], AVEncoderBitRateKey,
-                                         nil];
+                                         AVEncoderBitRateKey: @64000};
 /*
             AudioChannelLayout acl;
             bzero( &acl, sizeof(acl));

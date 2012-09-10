@@ -38,7 +38,7 @@
         weakThreshold.threshold = luminosity * weakSelf.thresholdMultiplier;
     }];
     
-    self.initialFilters = [NSArray arrayWithObjects:luminosityFilter, luminanceThresholdFilter, nil];
+    self.initialFilters = @[luminosityFilter, luminanceThresholdFilter];
     self.terminalFilter = luminanceThresholdFilter;
     
     return self;

@@ -63,7 +63,7 @@ NSString *const kGPUImageMotionComparisonFragmentShaderString = SHADER_STRING
     
     [frameComparisonFilter addTarget:averageColor];
     
-    self.initialFilters = [NSArray arrayWithObjects:lowPassFilter, frameComparisonFilter, nil];
+    self.initialFilters = @[lowPassFilter, frameComparisonFilter];
     self.terminalFilter = frameComparisonFilter;
     
     self.lowPassFilterStrength = 0.5;

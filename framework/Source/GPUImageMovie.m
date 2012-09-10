@@ -97,9 +97,9 @@
       return;
     }
   
-    NSDictionary *inputOptions = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:YES] forKey:AVURLAssetPreferPreciseDurationAndTimingKey];
+    NSDictionary *inputOptions = @{AVURLAssetPreferPreciseDurationAndTimingKey: @YES};
     AVURLAsset *inputAsset = [[AVURLAsset alloc] initWithURL:self.url options:inputOptions];    
-    [inputAsset loadValuesAsynchronouslyForKeys:[NSArray arrayWithObject:@"tracks"] completionHandler: ^{
+    [inputAsset loadValuesAsynchronouslyForKeys:@[@"tracks"] completionHandler: ^{
         NSError *error = nil;
         AVKeyValueStatus tracksStatus = [inputAsset statusOfValueForKey:@"tracks" error:&error];
         if (!tracksStatus == AVKeyValueStatusLoaded) 
@@ -118,9 +118,9 @@
     reader = [AVAssetReader assetReaderWithAsset:self.asset error:&error];
 
     NSMutableDictionary *outputSettings = [NSMutableDictionary dictionary];
-    [outputSettings setObject: [NSNumber numberWithInt:kCVPixelFormatType_32BGRA]  forKey: (NSString*)kCVPixelBufferPixelFormatTypeKey];
+    outputSettings[(NSString*)kCVPixelBufferPixelFormatTypeKey] = @(kCVPixelFormatType_32BGRA);
     // Maybe set alwaysCopiesSampleData to NO on iOS 5.0 for faster video decoding
-    AVAssetReaderTrackOutput *readerVideoTrackOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:[[self.asset tracksWithMediaType:AVMediaTypeVideo] objectAtIndex:0] outputSettings:outputSettings];
+    AVAssetReaderTrackOutput *readerVideoTrackOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:[self.asset tracksWithMediaType:AVMediaTypeVideo][0] outputSettings:outputSettings];
     [reader addOutput:readerVideoTrackOutput];
 
     NSArray *audioTracks = [self.asset tracksWithMediaType:AVMediaTypeAudio];
@@ -132,7 +132,7 @@
         audioEncodingIsFinished = NO;
 
         // This might need to be extended to handle movies with more than one audio track
-        AVAssetTrack* audioTrack = [audioTracks objectAtIndex:0];
+        AVAssetTrack* audioTrack = audioTracks[0];
         readerAudioTrackOutput = [AVAssetReaderTrackOutput assetReaderTrackOutputWithTrack:audioTrack outputSettings:nil];
         [reader addOutput:readerAudioTrackOutput];
     }
@@ -266,7 +266,7 @@
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-            NSInteger targetTextureIndex = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+            NSInteger targetTextureIndex = [targetTextureIndices[indexOfObject] integerValue];
             
             [currentTarget setInputSize:CGSizeMake(bufferWidth, bufferHeight) atIndex:targetTextureIndex];
             [currentTarget setInputTexture:outputTexture atIndex:targetTextureIndex];
@@ -294,7 +294,7 @@
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-            NSInteger targetTextureIndex = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+            NSInteger targetTextureIndex = [targetTextureIndices[indexOfObject] integerValue];
 
             [currentTarget setInputSize:currentSize atIndex:targetTextureIndex];
             [currentTarget newFrameReadyAtTime:currentSampleTime atIndex:targetTextureIndex];

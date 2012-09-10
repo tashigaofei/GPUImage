@@ -138,7 +138,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
         NSUInteger numberOfStageTextures = [stageTextures count];
         for (NSUInteger currentStage = 0; currentStage < numberOfStageTextures; currentStage++)
         {
-            GLuint currentTexture = [[stageTextures objectAtIndex:currentStage] intValue];
+            GLuint currentTexture = [stageTextures[currentStage] intValue];
             glDeleteTextures(1, &currentTexture);
         }
         
@@ -175,10 +175,10 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
             glBindFramebuffer(GL_FRAMEBUFFER, currentFramebuffer);
             [stageFramebuffers addObject:[NSNumber numberWithInt:currentFramebuffer]];
             
-            GLuint currentTexture = [[stageTextures objectAtIndex:currentStage] intValue];
+            GLuint currentTexture = [stageTextures[currentStage] intValue];
             glBindTexture(GL_TEXTURE_2D, currentTexture);
             
-            CGSize currentFramebufferSize = [[stageSizes objectAtIndex:currentStage] CGSizeValue];
+            CGSize currentFramebufferSize = [stageSizes[currentStage] CGSizeValue];
             
 //            NSLog(@"FBO stage size: %f, %f", currentFramebufferSize.width, currentFramebufferSize.height);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)currentFramebufferSize.width, (int)currentFramebufferSize.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -200,7 +200,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
         NSUInteger numberOfStageFramebuffers = [stageFramebuffers count];
         for (NSUInteger currentStage = 0; currentStage < numberOfStageFramebuffers; currentStage++)
         {
-            GLuint currentFramebuffer = [[stageFramebuffers objectAtIndex:currentStage] intValue];
+            GLuint currentFramebuffer = [stageFramebuffers[currentStage] intValue];
             glDeleteFramebuffers(1, &currentFramebuffer);
         }
         
@@ -225,10 +225,10 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
     NSUInteger numberOfStageFramebuffers = [stageFramebuffers count];
     for (NSUInteger currentStage = 0; currentStage < numberOfStageFramebuffers; currentStage++)
     {
-        GLuint currentFramebuffer = [[stageFramebuffers objectAtIndex:currentStage] intValue];
+        GLuint currentFramebuffer = [stageFramebuffers[currentStage] intValue];
         glBindFramebuffer(GL_FRAMEBUFFER, currentFramebuffer);
         
-        CGSize currentStageSize = [[stageSizes objectAtIndex:currentStage] CGSizeValue];
+        CGSize currentStageSize = [stageSizes[currentStage] CGSizeValue];
         glViewport(0, 0, (int)currentStageSize.width, (int)currentStageSize.height);
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -244,7 +244,7 @@ NSString *const kGPUImageColorAveragingFragmentShaderString = SHADER_STRING
         
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        currentTexture = [[stageTextures objectAtIndex:currentStage] intValue];
+        currentTexture = [stageTextures[currentStage] intValue];
 
 //        NSUInteger totalBytesForImage = (int)currentStageSize.width * (int)currentStageSize.height * 4;
 //        GLubyte *rawImagePixels2 = (GLubyte *)malloc(totalBytesForImage);

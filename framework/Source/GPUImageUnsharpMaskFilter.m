@@ -47,7 +47,7 @@ NSString *const kGPUImageUnsharpMaskFragmentShaderString = SHADER_STRING
     // Texture location 0 needs to be the sharp image for both the blur and the second stage processing
     [blurFilter addTarget:unsharpMaskFilter atTextureLocation:1];
     
-    self.initialFilters = [NSArray arrayWithObjects:blurFilter, unsharpMaskFilter, nil];
+    self.initialFilters = @[blurFilter, unsharpMaskFilter];
     self.terminalFilter = unsharpMaskFilter;
     
     self.intensity = 1.0;

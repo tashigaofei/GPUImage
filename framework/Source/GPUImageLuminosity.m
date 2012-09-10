@@ -136,10 +136,10 @@ NSString *const kGPUImageLuminosityFragmentShaderString = SHADER_STRING
     glVertexAttribPointer(filterPositionAttribute, 2, GL_FLOAT, 0, 0, vertices);
     glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
 
-    GLuint currentFramebuffer = [[stageFramebuffers objectAtIndex:0] intValue];
+    GLuint currentFramebuffer = [stageFramebuffers[0] intValue];
     glBindFramebuffer(GL_FRAMEBUFFER, currentFramebuffer);
     
-    CGSize currentStageSize = [[stageSizes objectAtIndex:0] CGSizeValue];
+    CGSize currentStageSize = [stageSizes[0] CGSizeValue];
     glViewport(0, 0, (int)currentStageSize.width, (int)currentStageSize.height);
 
     GLuint currentTexture = sourceTexture;
@@ -157,7 +157,7 @@ NSString *const kGPUImageLuminosityFragmentShaderString = SHADER_STRING
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     
-    currentTexture = [[stageTextures objectAtIndex:0] intValue];
+    currentTexture = [stageTextures[0] intValue];
 
     // Just perform reductions from this point on
     [GPUImageOpenGLESContext setActiveShaderProgram:secondFilterProgram];
@@ -167,10 +167,10 @@ NSString *const kGPUImageLuminosityFragmentShaderString = SHADER_STRING
     NSUInteger numberOfStageFramebuffers = [stageFramebuffers count];
     for (NSUInteger currentStage = 1; currentStage < numberOfStageFramebuffers; currentStage++)
     {
-        currentFramebuffer = [[stageFramebuffers objectAtIndex:currentStage] intValue];
+        currentFramebuffer = [stageFramebuffers[currentStage] intValue];
         glBindFramebuffer(GL_FRAMEBUFFER, currentFramebuffer);
         
-        currentStageSize = [[stageSizes objectAtIndex:currentStage] CGSizeValue];
+        currentStageSize = [stageSizes[currentStage] CGSizeValue];
         glViewport(0, 0, (int)currentStageSize.width, (int)currentStageSize.height);
         
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -186,7 +186,7 @@ NSString *const kGPUImageLuminosityFragmentShaderString = SHADER_STRING
         
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
         
-        currentTexture = [[stageTextures objectAtIndex:currentStage] intValue];
+        currentTexture = [stageTextures[currentStage] intValue];
         
 //        NSUInteger totalBytesForImage = (int)currentStageSize.width * (int)currentStageSize.height * 4;
 //        GLubyte *rawImagePixels2 = (GLubyte *)malloc(totalBytesForImage);

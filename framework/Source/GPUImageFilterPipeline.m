@@ -32,7 +32,7 @@
 }
 
 - (BOOL) _parseConfiguration:(NSDictionary *)configuration {
-    NSArray *filters = [configuration objectForKey:@"Filters"];
+    NSArray *filters = configuration[@"Filters"];
     if (!filters) return NO;
     
     NSError *regexError = nil;
@@ -43,12 +43,12 @@
     // It's faster to put them into an array and then pass it to the filters property than it is to call [self addFilter:] every time
     NSMutableArray *orderedFilters = [NSMutableArray arrayWithCapacity:[filters count]];
     for (NSDictionary *filter in filters) {
-        NSString *filterName = [filter objectForKey:@"FilterName"];
+        NSString *filterName = filter[@"FilterName"];
         Class theClass = NSClassFromString(filterName);
         GPUImageFilter *genericFilter = [[theClass alloc] init];
         // Set up the properties
         NSDictionary *filterAttributes;
-        if ((filterAttributes = [filter objectForKey:@"Attributes"])) {
+        if ((filterAttributes = filter[@"Attributes"])) {
             for (NSString *propertyKey in filterAttributes) {
                 // Set up the selector
                 SEL theSelector = NSSelectorFromString(propertyKey);
@@ -58,7 +58,7 @@
                 
                 // Parse the argument
                 NSString *stringValue = nil;
-                NSString *string = [filterAttributes objectForKey:propertyKey];
+                NSString *string = filterAttributes[propertyKey];
                 NSTextCheckingResult *parse = [parsingRegex firstMatchInString:string
                                                                        options:0
                                                                          range:NSMakeRange(0, [string length])];
@@ -116,7 +116,7 @@
 }
 
 - (void) replaceFilterAtIndex:(NSUInteger)index withFilter:(GPUImageFilter*)filter {
-    [self.filters replaceObjectAtIndex:index withObject:filter];
+    (self.filters)[index] = filter;
     [self _refreshFilters];
 }
 
@@ -141,7 +141,7 @@
     GPUImageFilter *theFilter = nil;
     
     for (int i = 0; i < [self.filters count]; i++) {
-        theFilter = [self.filters objectAtIndex:i];
+        theFilter = (self.filters)[i];
         [prevFilter removeAllTargets];
         [prevFilter addTarget:theFilter];
         prevFilter = theFilter;

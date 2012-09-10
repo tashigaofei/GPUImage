@@ -31,7 +31,7 @@
     
     [dilationFilter addTarget:erosionFilter];
     
-    self.initialFilters = [NSArray arrayWithObjects:dilationFilter, nil];
+    self.initialFilters = @[dilationFilter];
     self.terminalFilter = erosionFilter;
     
     return self;

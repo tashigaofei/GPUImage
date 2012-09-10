@@ -22,7 +22,7 @@
     // Texture location 0 needs to be the original image for the difference blend
     [lowPassFilter addTarget:differenceBlendFilter atTextureLocation:1];
     
-    self.initialFilters = [NSArray arrayWithObjects:lowPassFilter, differenceBlendFilter, nil];
+    self.initialFilters = @[lowPassFilter, differenceBlendFilter];
     self.terminalFilter = differenceBlendFilter;
     
     self.filterStrength = 0.5;

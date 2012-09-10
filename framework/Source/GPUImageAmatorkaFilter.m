@@ -20,7 +20,7 @@
     [lookupImageSource addTarget:lookupFilter atTextureLocation:1];
     [lookupImageSource processImage];
 
-    self.initialFilters = [NSArray arrayWithObjects:lookupFilter, nil];
+    self.initialFilters = @[lookupFilter];
     self.terminalFilter = lookupFilter;
     
     return self;
