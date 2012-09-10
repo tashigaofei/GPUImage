@@ -610,7 +610,7 @@
         //        }
         
         CFRetain(sampleBuffer);
-        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             [weakSelf processAudioSampleBuffer:sampleBuffer];
             CFRelease(sampleBuffer);
             //            dispatch_semaphore_signal(frameRenderingSemaphore);
@@ -619,13 +619,13 @@
     else
     {
         
-        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
-        {
-            return;
-        }
+//        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
+//        {
+//            return;
+//        }
         
         CFRetain(sampleBuffer);
-        dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
+        dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
             //Feature Detection Hook.
             if (self.delegate)
             {
@@ -635,7 +635,7 @@
             [weakSelf processVideoSampleBuffer:sampleBuffer];
             
             CFRelease(sampleBuffer);
-            dispatch_semaphore_signal(frameRenderingSemaphore);
+//            dispatch_semaphore_signal(frameRenderingSemaphore);
         });
     }
 }
