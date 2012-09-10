@@ -134,7 +134,7 @@
     [_captureSession commitConfiguration];
     
     [self focusAtPoint:CGPointMake(0.5, 0.5) ContinusFocus:YES];
-    [self flashConfig:YES];
+    [self flashConfig:NO];
     
 	return self;
 }
@@ -265,11 +265,11 @@
     [_captureSession beginConfiguration];
     
     if (device != nil) {
-        if ([device hasFlash] && [device isFlashModeSupported:AVCaptureFlashModeAuto]) {
+        if ([device hasFlash] && [device isFlashModeSupported:AVCaptureFlashModeOn]) {
             NSError *error;
             if ([device lockForConfiguration:&error]) {
                 if (enable) {
-                    [device setFlashMode:AVCaptureFlashModeAuto];
+                    [device setFlashMode:AVCaptureFlashModeOn];
                 }else{
                     [device setFlashMode:AVCaptureFlashModeOff];
                 }
@@ -619,10 +619,10 @@
     else
     {
         
-//        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
-//        {
-//            return;
-//        }
+        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
+        {
+            return;
+        }
         
         CFRetain(sampleBuffer);
         dispatch_async([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
@@ -635,7 +635,7 @@
             [weakSelf processVideoSampleBuffer:sampleBuffer];
             
             CFRelease(sampleBuffer);
-//            dispatch_semaphore_signal(frameRenderingSemaphore);
+            dispatch_semaphore_signal(frameRenderingSemaphore);
         });
     }
 }
