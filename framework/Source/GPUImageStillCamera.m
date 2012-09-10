@@ -288,13 +288,12 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
     [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
-        NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/originalimage"];
+        NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"originalimage"];
         __block __weak  id myself = self;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
             [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
              if (imageDataSampleBuffer) {
                 CFRetain(imageDataSampleBuffer);
-                [myself imageFromSampleBuffer:imageDataSampleBuffer];
                 UIImage *image= [myself imageFromSampleBuffer:imageDataSampleBuffer];
                 NSData *jpgData = UIImageJPEGRepresentation(image,1);
                 [jpgData writeToFile:path atomically:YES];

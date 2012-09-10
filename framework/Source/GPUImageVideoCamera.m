@@ -619,10 +619,10 @@
     else
     {
         
-        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
-        {
-            return;
-        }
+//        if (dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_NOW) != 0)
+//        {
+//            return;
+//        }
         
         CFRetain(sampleBuffer);
         dispatch_sync([GPUImageOpenGLESContext sharedOpenGLESQueue], ^{
@@ -635,7 +635,7 @@
             [weakSelf processVideoSampleBuffer:sampleBuffer];
             
             CFRelease(sampleBuffer);
-            dispatch_semaphore_signal(frameRenderingSemaphore);
+//            dispatch_semaphore_signal(frameRenderingSemaphore);
         });
     }
 }
