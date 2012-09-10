@@ -28,7 +28,7 @@
     // To prevent double updating of this filter, disable updates from the sharp image side
     //    self.inputFilterToIgnoreForUpdates = unsharpMaskFilter;
     
-    self.initialFilters = [NSArray arrayWithObject:dissolveBlendFilter];
+    self.initialFilters = @[dissolveBlendFilter];
     self.terminalFilter = dissolveBlendFilter;
     
     self.filterStrength = 0.5;

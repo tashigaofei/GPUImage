@@ -104,7 +104,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     for (id<GPUImageInput> currentTarget in targets)
     {
         NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-        NSInteger textureIndex = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+        NSInteger textureIndex = [targetTextureIndices[indexOfObject] integerValue];
         
         [self setInputTextureForTarget:currentTarget atIndex:textureIndex];
     }
@@ -136,7 +136,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     runSynchronouslyOnVideoProcessingQueue(^{
         [self setInputTextureForTarget:newTarget atIndex:textureLocation];
         [targets addObject:newTarget];
-        [targetTextureIndices addObject:[NSNumber numberWithInteger:textureLocation]];
+        [targetTextureIndices addObject:@(textureLocation)];
     });
 }
 
@@ -155,7 +155,7 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
     cachedMaximumOutputSize = CGSizeZero;
     
     NSInteger indexOfObject = [targets indexOfObject:targetToRemove];
-    NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+    NSInteger textureIndexOfTarget = [targetTextureIndices[indexOfObject] integerValue];
 
     runSynchronouslyOnVideoProcessingQueue(^{
         [targetToRemove setInputSize:CGSizeZero atIndex:textureIndexOfTarget];
@@ -174,10 +174,10 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
         for (id<GPUImageInput> targetToRemove in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:targetToRemove];
-            NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+            NSInteger textureIndexOfTarget = [targetTextureIndices[indexOfObject] integerValue];
             
             [targetToRemove setInputSize:CGSizeZero atIndex:textureIndexOfTarget];
-            [targetToRemove setInputTexture:0 atIndex:[[targetTextureIndices objectAtIndex:indexOfObject] integerValue]];
+            [targetToRemove setInputTexture:0 atIndex:[targetTextureIndices[indexOfObject] integerValue]];
             [targetToRemove setInputRotation:kGPUImageNoRotation atIndex:textureIndexOfTarget];
         }
         [targets removeAllObjects];

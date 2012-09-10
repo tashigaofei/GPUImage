@@ -48,7 +48,7 @@
     for (id<GPUImageInput> currentTarget in targets)
     {
         NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-        NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+        NSInteger textureIndexOfTarget = [targetTextureIndices[indexOfObject] integerValue];
         
         [currentTarget setInputSize:pixelSizeOfImage atIndex:textureIndexOfTarget];
         [currentTarget newFrameReadyAtTime:kCMTimeInvalid atIndex:textureIndexOfTarget];

@@ -54,7 +54,7 @@ NSString *const kGPUImageGaussianSelectiveBlurFragmentShaderString = SHADER_STRI
     [blurFilter addTarget:selectiveFocusFilter atTextureLocation:1];
     
     // To prevent double updating of this filter, disable updates from the sharp image side    
-    self.initialFilters = [NSArray arrayWithObjects:blurFilter, selectiveFocusFilter, nil];
+    self.initialFilters = @[blurFilter, selectiveFocusFilter];
     self.terminalFilter = selectiveFocusFilter;
     
     self.blurSize = 5.0f;

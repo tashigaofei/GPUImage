@@ -28,7 +28,7 @@
     // Texture location 0 needs to be the sharp image for both the blur and the second stage processing
     [blurFilter addTarget:toonFilter];
     
-    self.initialFilters = [NSArray arrayWithObject:blurFilter];
+    self.initialFilters = @[blurFilter];
     self.terminalFilter = toonFilter;
     
     self.blurSize = 0.5;

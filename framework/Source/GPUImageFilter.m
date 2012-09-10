@@ -514,7 +514,7 @@ void dataProviderUnlockCallback (void *info, const void *data, size_t size)
         if (currentTarget != self.targetToIgnoreForUpdates)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-            NSInteger textureIndex = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+            NSInteger textureIndex = [targetTextureIndices[indexOfObject] integerValue];
             
             if ([GPUImageOpenGLESContext supportsFastTextureUpload] && preparedToCaptureImage)
             {

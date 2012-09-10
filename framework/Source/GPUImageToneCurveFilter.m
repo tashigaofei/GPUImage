@@ -89,10 +89,10 @@
         
         [file closeFile];
         
-        rgbCompositeCurvePoints = [curves objectAtIndex:0];
-        redCurvePoints = [curves objectAtIndex:1];
-        greenCurvePoints = [curves objectAtIndex:2];
-        blueCurvePoints = [curves objectAtIndex:3];
+        rgbCompositeCurvePoints = curves[0];
+        redCurvePoints = curves[1];
+        greenCurvePoints = curves[2];
+        blueCurvePoints = curves[3];
 	}
 	
 	return self;
@@ -160,7 +160,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     toneCurveTextureUniform = [filterProgram uniformIndex:@"toneCurveTexture"];    
     
-    NSArray *defaultCurve = [NSArray arrayWithObjects:[NSValue valueWithCGPoint:CGPointMake(0.0, 0.0)], [NSValue valueWithCGPoint:CGPointMake(0.5, 0.5)], [NSValue valueWithCGPoint:CGPointMake(1.0, 1.0)], nil];
+    NSArray *defaultCurve = @[[NSValue valueWithCGPoint:CGPointMake(0.0, 0.0)], [NSValue valueWithCGPoint:CGPointMake(0.5, 0.5)], [NSValue valueWithCGPoint:CGPointMake(1.0, 1.0)]];
     [self setRgbCompositeControlPoints:defaultCurve];
     [self setRedControlPoints:defaultCurve];
     [self setGreenControlPoints:defaultCurve];
@@ -258,7 +258,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
         // Convert from (0, 1) to (0, 255).
         NSMutableArray *convertedPoints = [NSMutableArray arrayWithCapacity:[sortedPoints count]];
         for (int i=0; i<[points count]; i++){
-            CGPoint point = [[sortedPoints objectAtIndex:i] CGPointValue];
+            CGPoint point = [sortedPoints[i] CGPointValue];
             point.x = point.x * 255;
             point.y = point.y * 255;
                         
@@ -270,7 +270,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
         
         // If we have a first point like (0.3, 0) we'll be missing some points at the beginning
         // that should be 0.
-        CGPoint firstSplinePoint = [[splinePoints objectAtIndex:0] CGPointValue];
+        CGPoint firstSplinePoint = [splinePoints[0] CGPointValue];
         
         if (firstSplinePoint.x > 0) {
             for (int i=0; i <=firstSplinePoint.x; i++) {
@@ -284,7 +284,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
         NSMutableArray *preparedSplinePoints = [NSMutableArray arrayWithCapacity:[splinePoints count]];
         for (int i=0; i<[splinePoints count]; i++) 
         {
-            CGPoint newPoint = [[splinePoints objectAtIndex:i] CGPointValue];
+            CGPoint newPoint = [splinePoints[i] CGPointValue];
             CGPoint origPoint = CGPointMake(newPoint.x, newPoint.x);
             
             float distance = sqrt(pow((origPoint.x - newPoint.x), 2.0) + pow((origPoint.y - newPoint.y), 2.0));
@@ -294,7 +294,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
                 distance = -distance;
             }
             
-            [preparedSplinePoints addObject:[NSNumber numberWithFloat:distance]];
+            [preparedSplinePoints addObject:@(distance)];
         }
         
         return preparedSplinePoints;
@@ -316,7 +316,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     // From NSMutableArray to sd[n];
     for (int i=0; i<n; i++) 
     {
-        sd[i] = [[sdA objectAtIndex:i] doubleValue];
+        sd[i] = [sdA[i] doubleValue];
     }
     
     
@@ -324,8 +324,8 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
                               
     for(int i=0; i<n-1 ; i++) 
     {
-        CGPoint cur = [[points objectAtIndex:i] CGPointValue];
-        CGPoint next = [[points objectAtIndex:(i+1)] CGPointValue];
+        CGPoint cur = [points[i] CGPointValue];
+        CGPoint next = [points[(i+1)] CGPointValue];
         
         for(int x=cur.x;x<(int)next.x;x++) 
         {
@@ -374,9 +374,9 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     for(int i=1;i<n-1;i++) 
     {
-        CGPoint P1 = [[points objectAtIndex:(i-1)] CGPointValue];
-        CGPoint P2 = [[points objectAtIndex:i] CGPointValue];
-        CGPoint P3 = [[points objectAtIndex:(i+1)] CGPointValue];
+        CGPoint P1 = [points[(i-1)] CGPointValue];
+        CGPoint P2 = [points[i] CGPointValue];
+        CGPoint P3 = [points[(i+1)] CGPointValue];
         
         matrix[i][0]=(double)(P2.x-P1.x)/6;
         matrix[i][1]=(double)(P3.x-P1.x)/3;
@@ -416,7 +416,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     NSMutableArray *output = [NSMutableArray arrayWithCapacity:n];
     for (int i=0;i<n;i++) 
     {
-        [output addObject:[NSNumber numberWithDouble:y2[i]]];
+        [output addObject:@(y2[i])];
     }
     
     return output;
@@ -449,9 +449,9 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
             for (unsigned int currentCurveIndex = 0; currentCurveIndex < 256; currentCurveIndex++)
             {
                 // BGRA for upload to texture
-                toneCurveByteArray[currentCurveIndex * 4] = fmax(currentCurveIndex + [[_blueCurve objectAtIndex:currentCurveIndex] floatValue] + [[_rgbCompositeCurve objectAtIndex:currentCurveIndex] floatValue], 0);
-                toneCurveByteArray[currentCurveIndex * 4 + 1] = fmax(currentCurveIndex + [[_greenCurve objectAtIndex:currentCurveIndex] floatValue] + [[_rgbCompositeCurve objectAtIndex:currentCurveIndex] floatValue], 0);
-                toneCurveByteArray[currentCurveIndex * 4 + 2] = fmax(currentCurveIndex + [[_redCurve objectAtIndex:currentCurveIndex] floatValue] + [[_rgbCompositeCurve objectAtIndex:currentCurveIndex] floatValue], 0);
+                toneCurveByteArray[currentCurveIndex * 4] = fmax(currentCurveIndex + [_blueCurve[currentCurveIndex] floatValue] + [_rgbCompositeCurve[currentCurveIndex] floatValue], 0);
+                toneCurveByteArray[currentCurveIndex * 4 + 1] = fmax(currentCurveIndex + [_greenCurve[currentCurveIndex] floatValue] + [_rgbCompositeCurve[currentCurveIndex] floatValue], 0);
+                toneCurveByteArray[currentCurveIndex * 4 + 2] = fmax(currentCurveIndex + [_redCurve[currentCurveIndex] floatValue] + [_rgbCompositeCurve[currentCurveIndex] floatValue], 0);
                 toneCurveByteArray[currentCurveIndex * 4 + 3] = 255;
             }
             

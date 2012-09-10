@@ -118,12 +118,12 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 - (GLProgram *)programForVertexShaderString:(NSString *)vertexShaderString fragmentShaderString:(NSString *)fragmentShaderString;
 {
     NSString *lookupKeyForShaderProgram = [NSString stringWithFormat:@"V: %@ - F: %@", vertexShaderString, fragmentShaderString];
-    GLProgram *programFromCache = [shaderProgramCache objectForKey:lookupKeyForShaderProgram];
+    GLProgram *programFromCache = shaderProgramCache[lookupKeyForShaderProgram];
 
     if (programFromCache == nil)
     {
         programFromCache = [[GLProgram alloc] initWithVertexShaderString:vertexShaderString fragmentShaderString:fragmentShaderString];
-        [shaderProgramCache setObject:programFromCache forKey:lookupKeyForShaderProgram];
+        shaderProgramCache[lookupKeyForShaderProgram] = programFromCache;
     }
     
     return programFromCache;

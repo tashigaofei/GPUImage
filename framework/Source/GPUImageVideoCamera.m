@@ -107,7 +107,7 @@
 	videoOutput = [[AVCaptureVideoDataOutput alloc] init];
 	[videoOutput setAlwaysDiscardsLateVideoFrames:YES];
     
-	[videoOutput setVideoSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
+	[videoOutput setVideoSettings:@{(id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)}];
     
     [videoOutput setSampleBufferDelegate:self queue:cameraProcessingQueue];
 //    [videoOutput setSampleBufferDelegate:self queue:[GPUImageOpenGLESContext sharedOpenGLESQueue]];
@@ -177,7 +177,7 @@
 #pragma mark -- callback
 -(void)observeValueForKeyPath:(NSString*)keyPath ofObject:(id)object change:(NSDictionary*)change context:(void*)context {
     if([keyPath isEqualToString:@"adjustingFocus"]){
-        BOOL adjustingFocus =[[change objectForKey:NSKeyValueChangeNewKey] boolValue];
+        BOOL adjustingFocus =[change[NSKeyValueChangeNewKey] boolValue];
         if (adjustingFocus && _focusCallbackBlock != NULL) {
             dispatch_async(dispatch_get_main_queue(), ^(){
                 if (_focusCallbackBlock) {
@@ -497,7 +497,7 @@
             if ([currentTarget enabled])
             {
                 NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-                NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+                NSInteger textureIndexOfTarget = [targetTextureIndices[indexOfObject] integerValue];
                 
                 if (currentTarget != self.targetToIgnoreForUpdates)
                 {
@@ -556,7 +556,7 @@
                 if (currentTarget != self.targetToIgnoreForUpdates)
                 {
                     NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-                    NSInteger textureIndexOfTarget = [[targetTextureIndices objectAtIndex:indexOfObject] integerValue];
+                    NSInteger textureIndexOfTarget = [targetTextureIndices[indexOfObject] integerValue];
                     
                     [currentTarget setInputSize:CGSizeMake(bufferWidth, bufferHeight) atIndex:textureIndexOfTarget];
                     [currentTarget newFrameReadyAtTime:currentTime atIndex:textureIndexOfTarget];
@@ -743,7 +743,7 @@
         for (id<GPUImageInput> currentTarget in targets)
         {
             NSInteger indexOfObject = [targets indexOfObject:currentTarget];
-            [currentTarget setInputRotation:outputRotation atIndex:[[targetTextureIndices objectAtIndex:indexOfObject] integerValue]];
+            [currentTarget setInputRotation:outputRotation atIndex:[targetTextureIndices[indexOfObject] integerValue]];
         }
     });
 }

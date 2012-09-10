@@ -178,7 +178,7 @@ NSString *const kGPUImageSimpleThresholdFragmentShaderString = SHADER_STRING
     [nonMaximumSuppressionFilter addTarget:simpleThresholdFilter];
     [simpleThresholdFilter addTarget:colorPackingFilter];
     
-    self.initialFilters = [NSArray arrayWithObjects:derivativeFilter, nil];
+    self.initialFilters = @[derivativeFilter];
     self.terminalFilter = colorPackingFilter;
     
     self.blurSize = 1.0;

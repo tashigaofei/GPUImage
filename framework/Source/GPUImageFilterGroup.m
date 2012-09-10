@@ -31,7 +31,7 @@
 
 - (GPUImageOutput<GPUImageInput> *)filterAtIndex:(NSUInteger)filterIndex;
 {
-    return [filters objectAtIndex:filterIndex];
+    return filters[filterIndex];
 }
 
 - (int)filterCount;

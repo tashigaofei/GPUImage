@@ -44,7 +44,7 @@
     [lookupImageSource2 processImage];
     [self addFilter:lookupFilter2];
     
-    self.initialFilters = [NSArray arrayWithObjects:lookupFilter1, nil];
+    self.initialFilters = @[lookupFilter1];
     self.terminalFilter = lookupFilter2;
     
     return self;

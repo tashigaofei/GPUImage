@@ -60,7 +60,7 @@ NSString *const kGPUImageAdaptiveThresholdFragmentShaderString = SHADER_STRING
     // To prevent double updating of this filter, disable updates from the sharp luminance image side
     [luminanceFilter addTarget:adaptiveThresholdFilter];
     
-    self.initialFilters = [NSArray arrayWithObject:luminanceFilter];
+    self.initialFilters = @[luminanceFilter];
     self.terminalFilter = adaptiveThresholdFilter;
     
     return self;

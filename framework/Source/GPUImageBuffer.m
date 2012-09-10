@@ -57,7 +57,7 @@
     // Move the last frame to the back of the buffer, if needed
     if (_bufferSize > 1)
     {
-        NSNumber *lastTextureName = [bufferedTextures objectAtIndex:0];
+        NSNumber *lastTextureName = bufferedTextures[0];
         [bufferedTextures removeObjectAtIndex:0];
         [bufferedTextures addObject:lastTextureName];
     }
@@ -108,7 +108,7 @@
 
 - (GLuint)textureForOutput;
 {
-    return [[bufferedTextures objectAtIndex:0] intValue];
+    return [bufferedTextures[0] intValue];
 }
 
 #pragma mark -

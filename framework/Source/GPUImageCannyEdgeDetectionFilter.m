@@ -46,7 +46,7 @@
     [edgeDetectionFilter addTarget:nonMaximumSuppressionFilter];
     [nonMaximumSuppressionFilter addTarget:weakPixelInclusionFilter];
     
-    self.initialFilters = [NSArray arrayWithObject:luminanceFilter];
+    self.initialFilters = @[luminanceFilter];
 //    self.terminalFilter = nonMaximumSuppressionFilter;
     self.terminalFilter = weakPixelInclusionFilter;
     

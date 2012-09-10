@@ -84,7 +84,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
     [self.captureSession beginConfiguration];
     
     photoOutput = [[AVCaptureStillImageOutput alloc] init];
-    [photoOutput setOutputSettings:[NSDictionary dictionaryWithObject:[NSNumber numberWithInt:kCVPixelFormatType_32BGRA] forKey:(id)kCVPixelBufferPixelFormatTypeKey]];
+    [photoOutput setOutputSettings:@{(id)kCVPixelBufferPixelFormatTypeKey: @(kCVPixelFormatType_32BGRA)}];
     
     [self.captureSession addOutput:photoOutput];
     
@@ -128,7 +128,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 {
     dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
 
-    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+    [photoOutput captureStillImageAsynchronouslyFromConnection:[photoOutput connections][0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
 
         // For now, resize photos to fix within the max texture size of the GPU
         CVImageBufferRef cameraFrame = CMSampleBufferGetImageBuffer(imageSampleBuffer);
@@ -141,7 +141,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             GPUImageCreateResizedSampleBuffer(cameraFrame, scaledImageSizeToFitOnGPU, &sampleBuffer);
 
             dispatch_semaphore_signal(frameRenderingSemaphore);
-           [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+           [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[photoOutput connections][0]];
             dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
             CFRelease(sampleBuffer);
         }
@@ -152,7 +152,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             if ( (currentCameraPosition != AVCaptureDevicePositionFront) || (![GPUImageOpenGLESContext supportsFastTextureUpload]))
             {
                 dispatch_semaphore_signal(frameRenderingSemaphore);
-                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[photoOutput connections][0]];
                 dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
             }
         }
@@ -171,7 +171,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 //    reportAvailableMemoryForGPUImage(@"Before still image capture");
     dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
 
-    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+    [photoOutput captureStillImageAsynchronouslyFromConnection:[photoOutput connections][0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
 //        reportAvailableMemoryForGPUImage(@"Before filter processing");
 
         // For now, resize photos to fix within the max texture size of the GPU
@@ -186,7 +186,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             GPUImageCreateResizedSampleBuffer(cameraFrame, scaledImageSizeToFitOnGPU, &sampleBuffer);
             
             dispatch_semaphore_signal(frameRenderingSemaphore);
-            [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+            [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[photoOutput connections][0]];
             dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
             CFRelease(sampleBuffer);
         }
@@ -197,7 +197,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             if ( (currentCameraPosition != AVCaptureDevicePositionFront) || (![GPUImageOpenGLESContext supportsFastTextureUpload]))
             {
                 dispatch_semaphore_signal(frameRenderingSemaphore);
-                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[photoOutput connections][0]];
                 dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
            }
         }        
@@ -227,7 +227,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 {
     dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
 
-    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
+    [photoOutput captureStillImageAsynchronouslyFromConnection:[photoOutput connections][0] completionHandler:^(CMSampleBufferRef imageSampleBuffer, NSError *error) {
         
         // For now, resize photos to fix within the max texture size of the GPU
         CVImageBufferRef cameraFrame = CMSampleBufferGetImageBuffer(imageSampleBuffer);
@@ -240,7 +240,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             GPUImageCreateResizedSampleBuffer(cameraFrame, scaledImageSizeToFitOnGPU, &sampleBuffer);
 
             dispatch_semaphore_signal(frameRenderingSemaphore);
-            [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+            [self captureOutput:photoOutput didOutputSampleBuffer:sampleBuffer fromConnection:[photoOutput connections][0]];
             dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
             CFRelease(sampleBuffer);
         }
@@ -251,7 +251,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
             if ( (currentCameraPosition != AVCaptureDevicePositionFront) || (![GPUImageOpenGLESContext supportsFastTextureUpload]))
             {
                 dispatch_semaphore_signal(frameRenderingSemaphore);
-                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[[photoOutput connections] objectAtIndex:0]];
+                [self captureOutput:photoOutput didOutputSampleBuffer:imageSampleBuffer fromConnection:[photoOutput connections][0]];
                 dispatch_semaphore_wait(frameRenderingSemaphore, DISPATCH_TIME_FOREVER);
             }
         }
@@ -287,7 +287,7 @@ void GPUImageCreateResizedSampleBuffer(CVPixelBufferRef cameraFrame, CGSize fina
 {
 //     reportAvailableMemoryForGPUImage(@"before filter processing");
 
-    [photoOutput captureStillImageAsynchronouslyFromConnection:[[photoOutput connections] objectAtIndex:0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
+    [photoOutput captureStillImageAsynchronouslyFromConnection:[photoOutput connections][0] completionHandler: ^(CMSampleBufferRef imageDataSampleBuffer, NSError *error){
         NSString *path = [NSTemporaryDirectory() stringByAppendingString:@"/originalimage"];
         __block __weak  id myself = self;
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_LOW, 0), ^{
