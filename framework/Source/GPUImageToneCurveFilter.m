@@ -109,12 +109,24 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
  varying highp vec2 textureCoordinate;
  varying highp vec2 textureCoordinate2;
  
+// varying highp vec2 textureCoordinateBlur;
+ 
  uniform sampler2D inputImageTexture;
  uniform sampler2D inputImageTexture2;
+ 
  uniform sampler2D toneCurveTexture;
+ 
+// uniform sampler2D inputImageTextureBlur;
  
  uniform lowp float brightness;
  uniform lowp float contrast;
+ 
+ uniform lowp int isEnableBlur;
+ 
+ uniform lowp float excludeCircleRadius;
+ uniform lowp vec2 excludeCirclePoint;
+ uniform lowp float excludeBlurSize;
+ uniform highp float aspectRatio;
  
  void main()
  {
@@ -126,12 +138,57 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
      textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
      textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
-
+     
      lowp vec4 light = texture2D(inputImageTexture2, textureCoordinate2)*2.5;
      textureColor.rgb = textureColor.rgb * light.rgb;
      textureColor.a = 1.0;
-     gl_FragColor = textureColor;
-
+     
+     if (isEnableBlur == 1){
+         lowp vec4 sum = vec4(0.0);
+         // blur in x (vertical)
+         // take nine samples, with the distance blurSize between them
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x - 4.0*1.0/300.0, textureCoordinate.y)) * 0.05;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x - 3.0*1.0/300.0, textureCoordinate.y)) * 0.09;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x - 2.0*1.0/300.0, textureCoordinate.y)) * 0.12;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x - 1.0/300.0, textureCoordinate.y)) * 0.15;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y)) * 0.16;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x + 1.0/300.0, textureCoordinate.y)) * 0.15;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x + 2.0*1.0/300.0, textureCoordinate.y)) * 0.12;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x + 3.0*1.0/300.0, textureCoordinate.y)) * 0.09;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x + 4.0*1.0/300.0, textureCoordinate.y)) * 0.05;
+         
+         // blur in y (vertical)
+         // take nine samples, with the distance blurSize between them
+    
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y - 4.0*1.0/300.0)) * 0.05;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y - 3.0*1.0/300.0)) * 0.09;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y - 2.0*1.0/300.0)) * 0.12;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y - 1.0/300.0)) * 0.15;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y)) * 0.16;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y + 1.0/300.0)) * 0.15;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y + 2.0*1.0/300.0)) * 0.12;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y + 3.0*1.0/300.0)) * 0.09;
+         sum += texture2D(inputImageTexture, vec2(textureCoordinate.x, textureCoordinate.y + 4.0*1.0/300.0)) * 0.05;
+         
+         sum.a = 1.0;
+         
+         lowp float redCurveValue2 = texture2D(toneCurveTexture, vec2(sum.r, 0.0)).r;
+         lowp float greenCurveValue2 = texture2D(toneCurveTexture, vec2(sum.g, 0.0)).g;
+         lowp float blueCurveValue2 = texture2D(toneCurveTexture, vec2(sum.b, 0.0)).b;
+         
+         sum = vec4(redCurveValue2, greenCurveValue2, blueCurveValue2, sum.a);
+         sum = vec4((sum.rgb + vec3(brightness)), sum.w);
+         sum = vec4(((sum.rgb - vec3(0.5)) * contrast + vec3(0.5)), sum.w);
+         
+         
+         highp vec2 textureCoordinateToUse = vec2(textureCoordinate.x, (textureCoordinate.y * aspectRatio + 0.5 - 0.5 * aspectRatio));
+         highp float distanceFromCenter = distance(excludeCirclePoint, textureCoordinate);
+         
+         gl_FragColor  = mix(textureColor, sum, smoothstep(excludeCircleRadius - excludeBlurSize, excludeCircleRadius, distanceFromCenter));
+         
+     }else{
+         gl_FragColor = textureColor;
+     }
  }
 );
 
@@ -156,6 +213,11 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 @synthesize brightness = _brightness;
 @synthesize contrast = _contrast;
 
+@synthesize excludeCirclePoint = _excludeCirclePoint, excludeCircleRadius = _excludeCircleRadius, excludeBlurSize = _excludeBlurSize;
+@synthesize blurSize = _blurSize;
+@synthesize aspectRatio = _aspectRatio;
+@synthesize isEnableBlur = _isEnableBlur;
+
 #pragma mark -
 #pragma mark Initialization and teardown
 
@@ -179,6 +241,16 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
+    
+    enableBlurUniform = [filterProgram uniformIndex:@"isEnableBlur"];
+    self.isEnableBlur = 0;
+    
+    self.blurSize = 5.0f;
+    self.excludeCircleRadius = 80.0/320.0;
+    self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
+    self.excludeBlurSize = 30.0/320.0;
+    self.aspectRatio = 1.0f;
+    
     
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
@@ -216,6 +288,16 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
     
+    enableBlurUniform = [filterProgram uniformIndex:@"isEnableBlur"];
+    self.isEnableBlur = 0;
+    
+    self.blurSize = 5.0f;
+    self.excludeCircleRadius = 80.0/320.0;
+    self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
+    self.excludeBlurSize = 30.0/320.0;
+    self.aspectRatio = 1.0f;
+    
+    
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
     
@@ -252,15 +334,56 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 - (void)setBrightness:(CGFloat)newValue;
 {
     _brightness = newValue;
-    
     [self setFloat:_brightness forUniform:brightnessUniform program:filterProgram];
 }
 
 - (void)setContrast:(CGFloat)newValue;
 {
     _contrast = newValue;
-    
     [self setFloat:_contrast forUniform:contrastUniform program:filterProgram];
+}
+
+#pragma mark Accessors
+
+//- (void)setBlurSize:(CGFloat)newValue;
+//{
+//    blurFilter.blurSize = newValue;
+//}
+//
+//- (CGFloat)blurSize;
+//{
+//    return blurFilter.blurSize;
+//}
+
+- (void)setExcludeCirclePoint:(CGPoint)newValue;
+{
+    _excludeCirclePoint = newValue;
+    [self setPoint:newValue forUniformName:@"excludeCirclePoint"];
+}
+
+- (void)setExcludeCircleRadius:(CGFloat)newValue;
+{
+    _excludeCircleRadius = newValue;
+    [self setFloat:newValue forUniformName:@"excludeCircleRadius"];
+}
+
+- (void)setExcludeBlurSize:(CGFloat)newValue;
+{
+    _excludeBlurSize = newValue;
+    [self setFloat:newValue forUniformName:@"excludeBlurSize"];
+}
+
+- (void)setAspectRatio:(CGFloat)newValue;
+{
+    //    hasOverriddenAspectRatio = YES;
+    _aspectRatio = newValue;
+    [self setFloat:_aspectRatio forUniformName:@"aspectRatio"];
+}
+
+- (void)setIsEnableBlur:(int)isEnableBlur;
+{
+    _isEnableBlur = isEnableBlur;
+    [self setInteger:isEnableBlur forUniform:enableBlurUniform program:filterProgram];
 }
 
 #pragma mark -
@@ -572,5 +695,6 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     [self updateToneCurveTexture];
 }
+
 
 @end
