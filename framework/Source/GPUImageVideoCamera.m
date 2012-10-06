@@ -501,17 +501,19 @@
                 
                 if (currentTarget != self.targetToIgnoreForUpdates)
                 {
+                    [currentTarget setInputRotation:outputRotation atIndex:textureIndexOfTarget];
+                    
                     [currentTarget setInputSize:CGSizeMake(bufferWidth, bufferHeight) atIndex:textureIndexOfTarget];
                     
                     [currentTarget setInputTexture:outputTexture atIndex:textureIndexOfTarget];
-                    [currentTarget setInputRotation:outputRotation atIndex:textureIndexOfTarget];
                     
                     [currentTarget newFrameReadyAtTime:currentTime atIndex:textureIndexOfTarget];
                 }
                 else
                 {
-                    [currentTarget setInputTexture:outputTexture atIndex:textureIndexOfTarget];
                     [currentTarget setInputRotation:outputRotation atIndex:textureIndexOfTarget];
+                    [currentTarget setInputTexture:outputTexture atIndex:textureIndexOfTarget];
+                    
                 }
             }
         }

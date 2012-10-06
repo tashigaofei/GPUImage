@@ -107,7 +107,10 @@
 NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 (
  varying highp vec2 textureCoordinate;
+ varying highp vec2 textureCoordinate2;
+ 
  uniform sampler2D inputImageTexture;
+ uniform sampler2D inputImageTexture2;
  uniform sampler2D toneCurveTexture;
  
  uniform lowp float brightness;
@@ -122,7 +125,12 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      
      textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
      textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
-     gl_FragColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+
+     lowp vec4 light = texture2D(inputImageTexture2, textureCoordinate2)*2.5;
+     textureColor.rgb = textureColor.rgb * light.rgb;
+     textureColor.a = 1.0;
+     gl_FragColor = textureColor;
 
  }
 );
@@ -172,6 +180,13 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
     
+    [self disableFirstFrameCheck];
+    [self disableSecondFrameCheck];
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"light.png"] smoothlyScaleOutput:YES];
+    __weak id myself = self;
+    [_lightPicture addTarget:myself atTextureLocation:1];
+    [_lightPicture processImage];
+
     
     return self;
 }
@@ -201,6 +216,13 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
     
+    [self disableFirstFrameCheck];
+    [self disableSecondFrameCheck];
+    
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"light.png"] smoothlyScaleOutput:YES];
+//    __weak id myself = self;
+    [_lightPicture addTarget:self atTextureLocation:1];
+    [_lightPicture processImage];
     
     return self;
 }
@@ -465,29 +487,37 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 
 - (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates sourceTexture:(GLuint)sourceTexture;
 {
+
     if (self.preventRendering)
     {
         return;
     }
     
     [GPUImageOpenGLESContext setActiveShaderProgram:filterProgram];
+    [self setUniformsForProgramAtIndex:0];
+    
     [self setFilterFBO];
     
     glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, backgroundColorAlpha);
     glClear(GL_COLOR_BUFFER_BIT);
     
-  	glActiveTexture(GL_TEXTURE2);
-  	glBindTexture(GL_TEXTURE_2D, sourceTexture);
-  	glUniform1i(filterInputTextureUniform, 2);	
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, sourceTexture);
+	glUniform1i(filterInputTextureUniform, 2);
     
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, toneCurveTexture);                
-    glUniform1i(toneCurveTextureUniform, 3);	
-    
+    glBindTexture(GL_TEXTURE_2D, filterSourceTexture2);
+    glUniform1i(filterInputTextureUniform2, 3);
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, toneCurveTexture);
+    glUniform1i(toneCurveTextureUniform, 4);
+
     glVertexAttribPointer(filterPositionAttribute, 2, GL_FLOAT, 0, 0, vertices);
-    glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
+	glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
+    glVertexAttribPointer(filterSecondTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, [[self class] textureCoordinatesForRotation:inputRotation2]);
     
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);    
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 #pragma mark -
