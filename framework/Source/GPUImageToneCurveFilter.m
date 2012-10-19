@@ -124,14 +124,20 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      lowp float blueCurveValue = texture2D(toneCurveTexture, vec2(textureColor.b, 0.0)).b;
      
      textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
-     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
-     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+//     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
+//     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
 
-     lowp vec4 light = texture2D(inputImageTexture2, textureCoordinate2)*2.5;
-     textureColor.rgb = textureColor.rgb * light.rgb;
-     textureColor.a = 1.0;
+//     lowp vec4 textureColor2 = texture2D(inputImageTexture2, textureCoordinate2);
+     
+     //Averages mask's the RGB values, and scales that value by the mask's alpha
+	 //
+	 //The dot product should take fewer cycles than doing an average normally
+	 //
+	 //Typical/ideal case, R,G, and B will be the same, and Alpha will be 1.0
+//	 lowp float newAlpha = dot(textureColor2.rgb, vec3(.33333334, .33333334, .33333334)) * textureColor2.a;
+     
+//	 gl_FragColor = vec4(textureColor.xyz, newAlpha);
      gl_FragColor = textureColor;
-
  }
 );
 
@@ -182,11 +188,12 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"light.png"] smoothlyScaleOutput:YES];
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"dark.png"] smoothlyScaleOutput:YES];
     __weak id myself = self;
     [_lightPicture addTarget:myself atTextureLocation:1];
     [_lightPicture processImage];
 
+    [self setBackgroundColorRed:0 green:0 blue:0 alpha:1.0];
     
     return self;
 }
@@ -219,11 +226,12 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
     
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"light.png"] smoothlyScaleOutput:YES];
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"dark.png"] smoothlyScaleOutput:YES];
 //    __weak id myself = self;
     [_lightPicture addTarget:self atTextureLocation:1];
     [_lightPicture processImage];
     
+    [self setBackgroundColorRed:0 green:0 blue:0 alpha:1.0];
     return self;
 }
 
@@ -485,6 +493,14 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark Rendering
 
+//- (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates sourceTexture:(GLuint)sourceTexture;
+//{
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    [super renderToTextureWithVertices:vertices textureCoordinates:textureCoordinates sourceTexture:sourceTexture];
+//    glDisable(GL_BLEND);
+//}
+
 - (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates sourceTexture:(GLuint)sourceTexture;
 {
 
@@ -492,6 +508,9 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     {
         return;
     }
+  
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     [GPUImageOpenGLESContext setActiveShaderProgram:filterProgram];
     [self setUniformsForProgramAtIndex:0];
@@ -518,6 +537,9 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     glVertexAttribPointer(filterSecondTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, [[self class] textureCoordinatesForRotation:inputRotation2]);
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    
+    glDisable(GL_BLEND);
+
 }
 
 #pragma mark -
