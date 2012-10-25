@@ -127,19 +127,19 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 //     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
 //     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
 
-//     lowp vec4 textureColor2 = texture2D(inputImageTexture2, textureCoordinate2);
+     lowp vec4 textureColor2 = texture2D(inputImageTexture2, textureCoordinate2);
+     lowp float newAlpha = dot(textureColor2.rgb, vec3(.33333334, .33333334, .33333334)) * textureColor2.a;
      
-     //Averages mask's the RGB values, and scales that value by the mask's alpha
-	 //
-	 //The dot product should take fewer cycles than doing an average normally
-	 //
-	 //Typical/ideal case, R,G, and B will be the same, and Alpha will be 1.0
-//	 lowp float newAlpha = dot(textureColor2.rgb, vec3(.33333334, .33333334, .33333334)) * textureColor2.a;
-     
-//	 gl_FragColor = vec4(textureColor.xyz, newAlpha);
-     gl_FragColor = textureColor;
+	 gl_FragColor = vec4(textureColor.xyz, newAlpha);
+//     gl_FragColor = textureColor;
  }
 );
+
+//Averages mask's the RGB values, and scales that value by the mask's alpha
+//
+//The dot product should take fewer cycles than doing an average normally
+//
+//Typical/ideal case, R,G, and B will be the same, and Alpha will be 1.0
 
 
 @interface GPUImageToneCurveFilter()
