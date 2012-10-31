@@ -227,8 +227,8 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self disableSecondFrameCheck];
     
     _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"dark.png"] smoothlyScaleOutput:YES];
-//    __weak id myself = self;
-    [_lightPicture addTarget:self atTextureLocation:1];
+    __weak id myself = self;
+    [_lightPicture addTarget:myself atTextureLocation:1];
     [_lightPicture processImage];
     
     [self setBackgroundColorRed:0 green:0 blue:0 alpha:1.0];
@@ -254,6 +254,14 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
         glDeleteTextures(1, &toneCurveTexture);
         toneCurveTexture = 0;
         free(toneCurveByteArray);
+    }
+}
+
+-(void) destroy
+{
+    if (_lightPicture) {
+        [_lightPicture removeAllTargets];
+        _lightPicture = nil;
     }
 }
 
