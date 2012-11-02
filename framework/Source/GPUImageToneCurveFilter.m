@@ -122,15 +122,15 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      lowp float redCurveValue = texture2D(toneCurveTexture, vec2(textureColor.r, 0.0)).r;
      lowp float greenCurveValue = texture2D(toneCurveTexture, vec2(textureColor.g, 0.0)).g;
      lowp float blueCurveValue = texture2D(toneCurveTexture, vec2(textureColor.b, 0.0)).b;
-     
      textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
+     
 //     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
-     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+//     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
 
 //     lowp vec4 textureColor2 = texture2D(inputImageTexture2, textureCoordinate2);
 //     lowp float newAlpha = dot(textureColor2.rgb, vec3(.33333334, .33333334, .33333334)) * textureColor2.a;
-     
 //	 gl_FragColor = vec4(textureColor.xyz, newAlpha);
+     
      gl_FragColor = textureColor;
  }
 );
@@ -188,7 +188,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"dark.png"] smoothlyScaleOutput:YES];
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"mask.png"] smoothlyScaleOutput:YES];
     __weak id myself = self;
     [_lightPicture addTarget:myself atTextureLocation:1];
     [_lightPicture processImage];
@@ -226,7 +226,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self disableFirstFrameCheck];
     [self disableSecondFrameCheck];
     
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"dark.png"] smoothlyScaleOutput:YES];
+    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"mask.png"] smoothlyScaleOutput:YES];
     __weak id myself = self;
     [_lightPicture addTarget:myself atTextureLocation:1];
     [_lightPicture processImage];
