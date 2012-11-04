@@ -113,9 +113,16 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
  uniform sampler2D inputImageTexture2;
  uniform sampler2D toneCurveTexture;
  
- uniform lowp float brightness;
+// uniform lowp float brightness;
  uniform lowp float contrast;
  
+ uniform lowp vec4 coverUpColor;
+ 
+ uniform lowp float excludeCircleRadius;
+ uniform lowp vec2 excludeCirclePoint;
+ uniform lowp float excludeBlurSize;
+ uniform highp float aspectRatio;
+
  void main()
  {
      lowp vec4 textureColor = texture2D(inputImageTexture, textureCoordinate);
@@ -125,22 +132,15 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
      textureColor = vec4(redCurveValue, greenCurveValue, blueCurveValue, textureColor.a);
      
 //     textureColor = vec4((textureColor.rgb + vec3(brightness)), textureColor.w);
-//     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
+     textureColor = vec4(((textureColor.rgb - vec3(0.5)) * contrast + vec3(0.5)), textureColor.w);
 
-//     lowp vec4 textureColor2 = texture2D(inputImageTexture2, textureCoordinate2);
-//     lowp float newAlpha = dot(textureColor2.rgb, vec3(.33333334, .33333334, .33333334)) * textureColor2.a;
-//	 gl_FragColor = vec4(textureColor.xyz, newAlpha);
+     highp vec2 textureCoordinateToUse = vec2(textureCoordinate.x, (textureCoordinate.y * aspectRatio + 0.5 - 0.5 * aspectRatio));
+     highp float distanceFromCenter = distance(excludeCirclePoint, textureCoordinateToUse);     
+     gl_FragColor = mix(textureColor, coverUpColor, smoothstep(excludeCircleRadius - excludeBlurSize, excludeCircleRadius, distanceFromCenter));
      
-     gl_FragColor = textureColor;
+//     gl_FragColor = textureColor;
  }
 );
-
-//Averages mask's the RGB values, and scales that value by the mask's alpha
-//
-//The dot product should take fewer cycles than doing an average normally
-//
-//Typical/ideal case, R,G, and B will be the same, and Alpha will be 1.0
-
 
 @interface GPUImageToneCurveFilter()
 {
@@ -149,6 +149,7 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     GLubyte *toneCurveByteArray;
     
     NSArray *_redCurve, *_greenCurve, *_blueCurve, *_rgbCompositeCurve;
+    
 }
 
 @end
@@ -161,6 +162,8 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 @synthesize blueControlPoints = _blueControlPoints;
 //@synthesize brightness = _brightness;
 @synthesize contrast = _contrast;
+@synthesize coverUpColor = _coverUpColor;
+@synthesize excludeCirclePoint = _excludeCirclePoint, excludeCircleRadius = _excludeCircleRadius, excludeBlurSize = _excludeBlurSize;
 
 #pragma mark -
 #pragma mark Initialization and teardown
@@ -180,20 +183,12 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self setGreenControlPoints:defaultCurve];
     [self setBlueControlPoints:defaultCurve];
     
-//    brightnessUniform = [filterProgram uniformIndex:@"brightness"];
-//    self.brightness = 0;
-    
-    contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
-    
-    [self disableFirstFrameCheck];
-    [self disableSecondFrameCheck];
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"mask.png"] smoothlyScaleOutput:YES];
-    __weak id myself = self;
-    [_lightPicture addTarget:myself atTextureLocation:1];
-    [_lightPicture processImage];
-
-    [self setBackgroundColorRed:0 green:0 blue:0 alpha:1.0];
+    self.coverUpColor = (GPUVector4){0.0f, 0.0f, 0.0f, 1.0f};
+    self.excludeCircleRadius = 80.0/320.0;
+    self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
+    self.excludeBlurSize = 30.0/320.0;
+    self.aspectRatio = 1.0f;
     
     return self;
 }
@@ -214,24 +209,15 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self setRedControlPoints:curve.redCurvePoints];
     [self setGreenControlPoints:curve.greenCurvePoints];
     [self setBlueControlPoints:curve.blueCurvePoints];
-    
     curve = nil;
     
-//    brightnessUniform = [filterProgram uniformIndex:@"brightness"];
-//    self.brightness = 0;
-    
-    contrastUniform = [filterProgram uniformIndex:@"contrast"];
     self.contrast = 1.0;
+    self.coverUpColor = (GPUVector4){0.0f, 0.0f, 0.0f, 1.0f};
+    self.excludeCircleRadius = 300.0/320.0;
+    self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
+    self.excludeBlurSize = 280.0/320.0;
+    self.aspectRatio = 1.0f;
     
-    [self disableFirstFrameCheck];
-    [self disableSecondFrameCheck];
-    
-    _lightPicture = [[GPUImagePicture alloc] initWithImage:[UIImage imageNamed:@"mask.png"] smoothlyScaleOutput:YES];
-    __weak id myself = self;
-    [_lightPicture addTarget:myself atTextureLocation:1];
-    [_lightPicture processImage];
-    
-    [self setBackgroundColorRed:0 green:0 blue:0 alpha:1.0];
     return self;
 }
 
@@ -243,8 +229,8 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     [self setRedControlPoints:curve.redCurvePoints];
     [self setGreenControlPoints:curve.greenCurvePoints];
     [self setBlueControlPoints:curve.blueCurvePoints];
-    
     curve = nil;
+    
 }
 
 - (void)dealloc
@@ -257,27 +243,46 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     }
 }
 
--(void) destroy
-{
-    if (_lightPicture) {
-        [_lightPicture removeAllTargets];
-        _lightPicture = nil;
-    }
-}
-
-//- (void)setBrightness:(CGFloat)newValue;
-//{
-//    _brightness = newValue;
-//    
-//    [self setFloat:_brightness forUniform:brightnessUniform program:filterProgram];
-//}
-//
-
 - (void)setContrast:(CGFloat)newValue;
 {
     _contrast = newValue;
-    
-    [self setFloat:_contrast forUniform:contrastUniform program:filterProgram];
+    [self setFloat:_contrast forUniformName:@"contrast"];
+}
+
+
+
+-(void) setCoverUpColor:(GPUVector4)coverUpColor
+{
+    _coverUpColor = coverUpColor;
+    [self setFloatVec4:_coverUpColor forUniform:@"coverUpColor"];
+}
+
+
+#pragma mark Accessors
+
+- (void)setExcludeCirclePoint:(CGPoint)newValue;
+{
+    _excludeCirclePoint = newValue;
+    [self setPoint:newValue forUniformName:@"excludeCirclePoint"];
+}
+
+- (void)setExcludeCircleRadius:(CGFloat)newValue;
+{
+    _excludeCircleRadius = newValue;
+    [self setFloat:newValue forUniformName:@"excludeCircleRadius"];
+}
+
+- (void)setExcludeBlurSize:(CGFloat)newValue;
+{
+    _excludeBlurSize = newValue;
+    [self setFloat:newValue forUniformName:@"excludeBlurSize"];
+}
+
+- (void)setAspectRatio:(CGFloat)newValue;
+{
+//    hasOverriddenAspectRatio = YES;
+    _aspectRatio = newValue;
+    [self setFloat:_aspectRatio forUniformName:@"aspectRatio"];
 }
 
 #pragma mark -
@@ -502,53 +507,31 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
 #pragma mark -
 #pragma mark Rendering
 
-//- (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates sourceTexture:(GLuint)sourceTexture;
-//{
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-//    [super renderToTextureWithVertices:vertices textureCoordinates:textureCoordinates sourceTexture:sourceTexture];
-//    glDisable(GL_BLEND);
-//}
-
 - (void)renderToTextureWithVertices:(const GLfloat *)vertices textureCoordinates:(const GLfloat *)textureCoordinates sourceTexture:(GLuint)sourceTexture;
 {
-
     if (self.preventRendering)
     {
         return;
     }
-  
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     [GPUImageOpenGLESContext setActiveShaderProgram:filterProgram];
-    [self setUniformsForProgramAtIndex:0];
-    
     [self setFilterFBO];
     
     glClearColor(backgroundColorRed, backgroundColorGreen, backgroundColorBlue, backgroundColorAlpha);
     glClear(GL_COLOR_BUFFER_BIT);
     
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_2D, sourceTexture);
-	glUniform1i(filterInputTextureUniform, 2);
+  	glActiveTexture(GL_TEXTURE2);
+  	glBindTexture(GL_TEXTURE_2D, sourceTexture);
+  	glUniform1i(filterInputTextureUniform, 2);
     
     glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, filterSourceTexture2);
-    glUniform1i(filterInputTextureUniform2, 3);
-
-    glActiveTexture(GL_TEXTURE4);
     glBindTexture(GL_TEXTURE_2D, toneCurveTexture);
-    glUniform1i(toneCurveTextureUniform, 4);
-
+    glUniform1i(toneCurveTextureUniform, 3);
+    
     glVertexAttribPointer(filterPositionAttribute, 2, GL_FLOAT, 0, 0, vertices);
-	glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
-    glVertexAttribPointer(filterSecondTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, [[self class] textureCoordinatesForRotation:inputRotation2]);
+    glVertexAttribPointer(filterTextureCoordinateAttribute, 2, GL_FLOAT, 0, 0, textureCoordinates);
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
-    glDisable(GL_BLEND);
-
 }
 
 #pragma mark -
