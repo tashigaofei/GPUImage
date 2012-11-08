@@ -207,15 +207,15 @@ void reportAvailableMemoryForGPUImage(NSString *tag)
 
 - (void)deleteOutputTexture;
 {
-//    runSynchronouslyOnVideoProcessingQueue(^{
-//        [GPUImageOpenGLESContext useImageProcessingContext];
+    runSynchronouslyOnVideoProcessingQueue(^{
+        [GPUImageOpenGLESContext useImageProcessingContext];
 
         if (outputTexture)
         {
             glDeleteTextures(1, &outputTexture);
             outputTexture = 0;
         }
-//    });
+    });
 }
 
 - (void)forceProcessingAtSize:(CGSize)frameSize;

@@ -146,7 +146,7 @@
         [self destroyDisplayFramebuffer];
     });
     
-    [GPUImageOpenGLESContext destroyContext];
+//    [GPUImageOpenGLESContext destroyContext];
 }
 
 #pragma mark -
