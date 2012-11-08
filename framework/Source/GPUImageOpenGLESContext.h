@@ -8,7 +8,7 @@
 
 #define GPUImageRotationSwapsWidthAndHeight(rotation) ((rotation) == kGPUImageRotateLeft || (rotation) == kGPUImageRotateRight || (rotation) == kGPUImageRotateRightFlipVertical || (rotation) == kGPUImageRotateLeftFlipHorizonal || (rotation) == kGPUImageRotateRightFlipHorizonal)
 
-typedef enum { kGPUImageNoRotation, kGPUImageOrientationDown, kGPUImageRotateLeft, kGPUImageRotateRight, kGPUImageFlipHorizonal,kGPUImageRotate180FlipHorizonal,kGPUImageRotateLeftFlipHorizonal, kGPUImageRotateRightFlipHorizonal, kGPUImageFlipVertical ,kGPUImageRotateRightFlipVertical, kGPUImageRotate180 } GPUImageRotationMode;
+typedef enum { kGPUImageNoRotation = 0, kGPUImageOrientationDown, kGPUImageRotateLeft, kGPUImageRotateRight, kGPUImageFlipHorizonal,kGPUImageRotate180FlipHorizonal,kGPUImageRotateLeftFlipHorizonal, kGPUImageRotateRightFlipHorizonal, kGPUImageFlipVertical ,kGPUImageRotateRightFlipVertical, kGPUImageRotate180 } GPUImageRotationMode;
 
 @interface GPUImageOpenGLESContext : NSObject
 

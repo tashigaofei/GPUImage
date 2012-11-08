@@ -464,8 +464,8 @@
     int bufferWidth = CVPixelBufferGetWidth(cameraFrame);
     int bufferHeight = CVPixelBufferGetHeight(cameraFrame);
     
-    int bufferSize = CVPixelBufferGetDataSize(cameraFrame);
-    NSLog(@"size is %d, width is %d, height is %d", bufferSize, bufferWidth, bufferHeight);
+//    int bufferSize = CVPixelBufferGetDataSize(cameraFrame);
+//    NSLog(@"size is %d, width is %d, height is %d", bufferSize, bufferWidth, bufferHeight);
     
     CMTime currentTime = CMSampleBufferGetPresentationTimeStamp(sampleBuffer);
 
