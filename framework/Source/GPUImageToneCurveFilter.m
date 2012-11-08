@@ -213,11 +213,11 @@ NSString *const kGPUImageToneCurveFragmentShaderString = SHADER_STRING
     
     self.contrast = 1.0;
     self.coverUpColor = (GPUVector4){0.0f, 0.0f, 0.0f, 1.0f};
-    self.excludeCircleRadius = 300.0/320.0;
+    self.excludeCircleRadius = 310.0/320.0;
     self.excludeCirclePoint = CGPointMake(0.5f, 0.5f);
     self.excludeBlurSize = 200.0/320.0;
     self.aspectRatio = 1.0f;
-    
+
     return self;
 }
 
