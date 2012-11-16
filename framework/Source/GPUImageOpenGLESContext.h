@@ -29,7 +29,8 @@ typedef enum { kGPUImageNoRotation = 0, kGPUImageOrientationDown, kGPUImageRotat
 
 // Manage fast texture upload
 + (BOOL)supportsFastTextureUpload;
-+(void) destroyContext;
+- (void)useSharegroup:(EAGLSharegroup *)sharegroup;
+
 @end
 
 @protocol GPUImageInput <NSObject>

@@ -5,10 +5,10 @@
 @interface GPUImageOpenGLESContext()
 {
     NSMutableDictionary *shaderProgramCache;
+    EAGLSharegroup *_sharegroup;
 }
 
 @end
-static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 
 @implementation GPUImageOpenGLESContext
 
@@ -22,7 +22,7 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
     {
 		return nil;
     }
-        
+    
     _contextQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.openGLESContextQueue", NULL);
     shaderProgramCache = [[NSMutableDictionary alloc] init];
     
@@ -32,20 +32,18 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 // Based on Colin Wheeler's example here: http://cocoasamurai.blogspot.com/2011/04/singletons-your-doing-them-wrong.html
 + (GPUImageOpenGLESContext *)sharedImageProcessingOpenGLESContext;
 {
-    if (!sharedImageProcessingOpenGLESContext) {
-        sharedImageProcessingOpenGLESContext = [[GPUImageOpenGLESContext alloc] init];
-    }
+    static dispatch_once_t pred;
+    static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
+    
+    dispatch_once(&pred, ^{
+        sharedImageProcessingOpenGLESContext = [[[self class] alloc] init];
+    });
     return sharedImageProcessingOpenGLESContext;
 }
 
 + (dispatch_queue_t)sharedOpenGLESQueue;
 {
     return [[self sharedImageProcessingOpenGLESContext] contextQueue];
-}
-
-+(void) destroyContext
-{
-    sharedImageProcessingOpenGLESContext = nil;
 }
 
 + (void)useImageProcessingContext;
@@ -75,21 +73,27 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 
 + (GLint)maximumTextureSizeForThisDevice;
 {
-    GLint maxTextureSize; 
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    static dispatch_once_t pred;
+    static GLint maxTextureSize = 0;
+    
+    dispatch_once(&pred, ^{
+        [self useImageProcessingContext];
+        glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+    });
+    
     return maxTextureSize;
 }
 
 + (GLint)maximumTextureUnitsForThisDevice;
 {
-    GLint maxTextureUnits; 
+    GLint maxTextureUnits;
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
     return maxTextureUnits;
 }
 
 + (CGSize)sizeThatFitsWithinATextureForSize:(CGSize)inputSize;
 {
-    GLint maxTextureSize = [self maximumTextureSizeForThisDevice]; 
+    GLint maxTextureSize = [self maximumTextureSizeForThisDevice];
     if ( (inputSize.width < maxTextureSize) && (inputSize.height < maxTextureSize) )
     {
         return inputSize;
@@ -106,27 +110,41 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
         adjustedSize.height = (CGFloat)maxTextureSize;
         adjustedSize.width = ((CGFloat)maxTextureSize / inputSize.height) * inputSize.width;
     }
-
+    
     return adjustedSize;
 }
 
 - (void)presentBufferForDisplay;
 {
-    [_context presentRenderbuffer:GL_RENDERBUFFER];
+    [self.context presentRenderbuffer:GL_RENDERBUFFER];
 }
 
 - (GLProgram *)programForVertexShaderString:(NSString *)vertexShaderString fragmentShaderString:(NSString *)fragmentShaderString;
 {
     NSString *lookupKeyForShaderProgram = [NSString stringWithFormat:@"V: %@ - F: %@", vertexShaderString, fragmentShaderString];
-    GLProgram *programFromCache = shaderProgramCache[lookupKeyForShaderProgram];
-
+    GLProgram *programFromCache = [shaderProgramCache objectForKey:lookupKeyForShaderProgram];
+    
     if (programFromCache == nil)
     {
         programFromCache = [[GLProgram alloc] initWithVertexShaderString:vertexShaderString fragmentShaderString:fragmentShaderString];
-        shaderProgramCache[lookupKeyForShaderProgram] = programFromCache;
+        [shaderProgramCache setObject:programFromCache forKey:lookupKeyForShaderProgram];
     }
     
     return programFromCache;
+}
+
+- (void)useSharegroup:(EAGLSharegroup *)sharegroup;
+{
+    NSAssert(_context == nil, @"Unable to use a share group when the context has already been created. Call this method before you use the context for the first time.");
+    
+    _sharegroup = sharegroup;
+}
+
+- (EAGLContext *)createContext;
+{
+    EAGLContext *context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:_sharegroup];
+    NSAssert(context != nil, @"Unable to create an OpenGL ES 2.0 context. The GPUImage framework requires OpenGL ES 2.0 support to work.");
+    return context;
 }
 
 
@@ -149,8 +167,7 @@ static GPUImageOpenGLESContext *sharedImageProcessingOpenGLESContext = nil;
 {
     if (_context == nil)
     {
-        _context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-        NSAssert(_context != nil, @"Unable to create an OpenGL ES 2.0 context. The GPUImage framework requires OpenGL ES 2.0 support to work.");
+        _context = [self createContext];
         [EAGLContext setCurrentContext:_context];
         
         // Set up a few global settings for the image processing pipeline
